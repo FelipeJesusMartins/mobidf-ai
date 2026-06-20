@@ -1,27 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Leaflet fix for Next.js */
-@import "leaflet/dist/leaflet.css";
-
+/* ── Design Tokens ──────────────────────────────────────── */
 :root {
-  --brand: #2563eb;
+  --s1: #0f1117;
+  --s2: #161925;
+  --s3: #1e2130;
+  --s4: #252a3a;
+  --border: rgba(255,255,255,0.07);
+  --border-h: rgba(255,255,255,0.13);
+  --t1: #f1f5f9;
+  --t2: #94a3b8;
+  --t3: #64748b;
+  --brand: #6366f1;
+  --brand-g: rgba(99,102,241,0.35);
+  --green: #10b981;
+  --red: #f43f5e;
+  --amber: #f59e0b;
 }
 
+/* ── Base ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--s1);
+  color: var(--t1);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--s4); border-radius: 99px; }
+
+/* ── Components ─────────────────────────────────────────── */
+@layer components {
+
+  .card {
+    background: var(--s2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .card-interactive {
+    @apply card transition-all duration-200 cursor-pointer;
+  }
+  .card-interactive:hover {
+    border-color: var(--border-h);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+  }
+
+  .glass {
+    background: rgba(22, 25, 37, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* ── Badges ── */
+  .badge { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide; }
+  .badge-green { @apply badge; background: rgba(16,185,129,0.15); color: #34d399; }
+  .badge-red   { @apply badge; background: rgba(244,63,94,0.15);  color: #fb7185; }
+  .badge-amber { @apply badge; background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .badge-blue  { @apply badge; background: rgba(99,102,241,0.15); color: #a5b4fc; }
+  .badge-sky   { @apply badge; background: rgba(56,189,248,0.15); color: #7dd3fc; }
+
+  /* ── Buttons ── */
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 select-none; }
+  .btn-primary {
+    @apply btn;
+    background: var(--brand);
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.4), 0 4px 14px rgba(99,102,241,0.3);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(99,102,241,0.6), 0 6px 20px rgba(99,102,241,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    @apply btn;
+    background: var(--s3);
+    color: var(--t2);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--s4); color: var(--t1); border-color: var(--border-h); }
+  .btn-danger {
+    @apply btn;
+    background: rgba(244,63,94,0.12);
+    color: #fb7185;
+    border: 1px solid rgba(244,63,94,0.2);
+  }
+  .btn-danger:hover { background: rgba(244,63,94,0.22); box-shadow: 0 0 16px -4px rgba(244,63,94,0.4); }
+  .btn-success {
+    @apply btn;
+    background: rgba(16,185,129,0.12);
+    color: #34d399;
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+  .btn-success:hover { background: rgba(16,185,129,0.22); }
+
+  /* ── Input ── */
+  .input {
+    @apply w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-150;
+    background: var(--s3);
+    border: 1px solid var(--border);
+    color: var(--t1);
+  }
+  .input::placeholder { color: var(--t3); }
+  .input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-g); }
+
+  /* ── Nav ── */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150;
+    color: var(--t3);
+  }
+  .nav-link:hover { background: var(--s3); color: var(--t2); }
+  .nav-link.active {
+    background: rgba(99,102,241,0.12);
+    color: #a5b4fc;
+    border: 1px solid rgba(99,102,241,0.18);
+  }
+
+  /* ── Progress ── */
+  .progress { height: 6px; border-radius: 99px; overflow: hidden; background: var(--s4); }
+  .progress-bar { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+  /* ── Live dot ── */
+  .live-dot { @apply relative inline-flex h-2 w-2; }
+  .live-dot::before {
+    content: '';
+    @apply absolute inset-0 rounded-full animate-ping;
+    background: var(--green);
+    opacity: 0.6;
+  }
+  .live-dot::after {
+    content: '';
+    @apply absolute inset-0.5 rounded-full;
+    background: var(--green);
+  }
+
+  /* ── Separator ── */
+  .sep { height: 1px; background: var(--border); }
+
+  /* ── Stat box ── */
+  .stat {
+    @apply rounded-xl p-4;
+    background: var(--s3);
+    border: 1px solid var(--border);
+  }
 }
 
-.card {
-  @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-5;
+/* ── Recharts dark theme ─────────────────────────────────── */
+.recharts-cartesian-grid line { stroke: rgba(255,255,255,0.05) !important; }
+.recharts-text { fill: #64748b !important; font-size: 11px !important; }
+.recharts-default-tooltip {
+  background: #1e2130 !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
 }
+.recharts-tooltip-label { color: #94a3b8 !important; font-size: 11px !important; margin-bottom: 4px; }
+.recharts-tooltip-item  { color: #f1f5f9 !important; font-size: 13px !important; }
 
-.kpi-card {
-  @apply card flex flex-col gap-1;
+/* ── Cidadão (light) ─────────────────────────────────────── */
+.app-light {
+  background: #f0f4ff;
+  color: #0f172a;
+  min-height: 100svh;
 }
-
-.badge-green  { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800; }
-.badge-yellow { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
-.badge-red    { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800; }
-.badge-blue   { @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
+.bus-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
+}
+.bus-card:hover {
+  border-color: #a5b4fc;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.12);
+  transform: translateY(-1px);
+}
+.tab-active {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+}
