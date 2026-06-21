@@ -347,6 +347,7 @@ export default function CidadaoPage() {
   useEffect(() => { toPtRef.current = toPt; }, [toPt]);
   const [routePlan,   setRoutePlan]   = useState<RoutePlan | null>(null);
   const [routeLoading,setRouteLoading]= useState(false);
+  const [routeError,  setRouteError]  = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [poiQuery,     setPoiQuery]     = useState("");
   const [pois,         setPois]         = useState<POI[]>([]);
@@ -430,15 +431,27 @@ export default function CidadaoPage() {
   }, [tab]);
 
   const planRoute = useCallback(async (from: Pt, to: Pt) => {
-    setRouteLoading(true); setRoutePlan(null); setSelectedRoute(null);
+    setRouteLoading(true); setRoutePlan(null); setSelectedRoute(null); setRouteError(null);
     trackEvent("route_planned", `${from.label}→${to.label}`);
     try {
       const plan = await api.cidadao.planRoute(from.lat, from.lon, to.lat, to.lon);
       setRoutePlan(plan);
       if (plan.routes.length > 0) setSelectedRoute(plan.routes[0]);
-    } catch { /* silencioso */ }
-    finally { setRouteLoading(false); }
+    } catch (e) {
+      setRouteError(e instanceof Error ? e.message : "Erro ao calcular rota.");
+    } finally { setRouteLoading(false); }
   }, []);
+
+  // Dispara planRoute automaticamente quando ambos fromPt e toPt estão prontos.
+  // Isso resolve race conditions (destino selecionado antes do GPS resolver).
+  const lastPlanKey = useRef<string>("");
+  useEffect(() => {
+    if (!fromPt || !toPt) return;
+    const key = `${fromPt.lat.toFixed(5)},${fromPt.lon.toFixed(5)}→${toPt.lat.toFixed(5)},${toPt.lon.toFixed(5)}`;
+    if (lastPlanKey.current === key) return;
+    lastPlanKey.current = key;
+    planRoute(fromPt, toPt);
+  }, [fromPt, toPt, planRoute]);
 
   const handleMapClick = useCallback((lat: number, lon: number) => {
     if (pickMode !== "destination") return;
@@ -1090,9 +1103,24 @@ export default function CidadaoPage() {
                 )}
 
                 {routeLoading && (
-                  <div style={{ textAlign:"center", padding:"28px 0",
-                    color:"rgba(255,255,255,0.4)", fontSize:13 }}>
-                    Calculando rotas…
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
+                    gap:10, padding:"28px 0" }}>
+                    <div style={{ width:18, height:18, border:"2.5px solid rgba(255,255,255,0.15)",
+                      borderTopColor:"#818cf8", borderRadius:"50%", animation:"spin 0.7s linear infinite" }} />
+                    <span style={{ color:"rgba(255,255,255,0.4)", fontSize:13 }}>Buscando rotas…</span>
+                  </div>
+                )}
+
+                {routeError && !routeLoading && (
+                  <div style={{ padding:"14px 16px", borderRadius:14,
+                    background:"rgba(244,63,94,0.1)", border:"1px solid rgba(244,63,94,0.3)" }}>
+                    <div style={{ fontSize:12, color:"#fb7185", fontWeight:700, marginBottom:4 }}>Erro ao calcular rota</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{routeError}</div>
+                    <button onClick={() => { if (fromPt && toPt) { lastPlanKey.current = ""; planRoute(fromPt, toPt); } }}
+                      style={{ marginTop:10, padding:"5px 14px", borderRadius:99, border:"none",
+                        background:"rgba(244,63,94,0.2)", color:"#fb7185", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                      Tentar novamente
+                    </button>
                   </div>
                 )}
 
@@ -1100,7 +1128,7 @@ export default function CidadaoPage() {
                 {routePlan && routePlan.routes.length === 0 && !routeLoading && (
                   <div style={{ textAlign:"center", padding:"24px 0",
                     color:"rgba(255,255,255,0.35)", fontSize:13 }}>
-                    Nenhuma rota encontrada. Tente pontos mais próximos a paradas de ônibus.
+                    Nenhuma rota encontrada. Tente um destino mais próximo de paradas de ônibus.
                   </div>
                 )}
 
