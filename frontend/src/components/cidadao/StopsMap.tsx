@@ -169,6 +169,12 @@ function MapController({
   const prevSelId = useRef<string | null>(null);
   const prevFocusLen = useRef(0);
 
+  // Força Leaflet a recalcular o container no mount (corrige altura 0 no mobile)
+  useEffect(() => {
+    const t = setTimeout(() => { map.invalidateSize(); }, 50);
+    return () => clearTimeout(t);
+  }, [map]);
+
   useEffect(() => {
     const selChanged = selectedStop?.stop_id !== prevSelId.current;
     const focusChanged = focusStops.length !== prevFocusLen.current;

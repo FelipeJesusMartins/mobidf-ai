@@ -676,12 +676,13 @@ export default function CidadaoPage() {
         {showMap && (
           <motion.div
             key="map"
-            initial={{ opacity:0, height:0 }}
-            animate={{ opacity:1, height:420 }}
-            exit={{ opacity:0, height:0 }}
-            transition={{ duration:0.38, ease }}
+            initial={{ opacity:0 }}
+            animate={{ opacity:1 }}
+            exit={{ opacity:0 }}
+            transition={{ duration:0.3, ease }}
             style={{ margin:"10px 18px 0", borderRadius:20, overflow:"hidden",
-              border:"1px solid rgba(255,255,255,0.12)", position:"relative", zIndex:5 }}>
+              border:"1px solid rgba(255,255,255,0.12)", position:"relative", zIndex:5,
+              height:360 }}>
 
             <StopsMap
               allStops={allStops}
