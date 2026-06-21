@@ -337,11 +337,36 @@ def _parse_poi_elements(elements: list) -> list[dict]:
             "lat":        lat,
             "lon":        lon,
             "type":       cat,
-            "address":    tags.get("addr:street", tags.get("addr:suburb", tags.get("addr:city",""))),
+            "address":    _build_address(tags),
             "phone":      tags.get("phone", tags.get("contact:phone", tags.get("contact:mobile",""))),
             "opening":    tags.get("opening_hours", ""),
         })
     return pois
+
+def _build_address(tags: dict) -> str:
+    """Monta o melhor endereço possível a partir dos campos OSM disponíveis."""
+    parts: list[str] = []
+    street = tags.get("addr:street", "")
+    num    = tags.get("addr:housenumber", "")
+    if street:
+        parts.append(f"{street}{', ' + num if num else ''}")
+    suburb = (tags.get("addr:suburb") or tags.get("addr:neighbourhood")
+              or tags.get("addr:quarter") or "")
+    if suburb and suburb not in parts:
+        parts.append(suburb)
+    district = tags.get("addr:district", "")
+    if district and district not in parts:
+        parts.append(district)
+    city = tags.get("addr:city", "")
+    if city and city not in parts:
+        parts.append(city)
+    if not parts:
+        # Sem campos addr: tenta description, note ou localidade de vizinhança
+        note = (tags.get("description") or tags.get("note")
+                or tags.get("loc_name") or tags.get("alt_name") or "")
+        if note:
+            return note[:80]
+    return ", ".join(parts) if parts else ""
 
 async def _load_pois() -> None:
     global _ALL_POIS, _pois_loaded

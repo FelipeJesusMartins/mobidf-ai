@@ -951,25 +951,32 @@ export default function CidadaoPage() {
 
                 {pois.length > 0 && (
                   <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:16,
-                    border:"1px solid rgba(255,255,255,0.1)", overflow:"hidden", maxHeight:200, overflowY:"auto" }}>
-                    {pois.slice(0,12).map((poi, i) => {
-                      const style = POI_STYLE_MAP[poi.type] ?? POI_STYLE_MAP.local;
+                    border:"1px solid rgba(255,255,255,0.1)", overflow:"hidden", maxHeight:320, overflowY:"auto" }}>
+                    {pois.slice(0,20).map((poi, i) => {
+                      const poiStyle = POI_STYLE_MAP[poi.type] ?? POI_STYLE_MAP.local;
+                      const locationHint = poi.address || poi.opening || `${poi.lat.toFixed(4)}, ${poi.lon.toFixed(4)}`;
                       return (
-                        <div key={poi.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px",
-                          borderBottom: i < Math.min(pois.length,12)-1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                          <span style={{ fontSize:18, flexShrink:0 }}>{style.emoji}</span>
+                        <div key={poi.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
+                          borderBottom: i < Math.min(pois.length,20)-1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                          <span style={{ fontSize:18, flexShrink:0 }}>{poiStyle.emoji}</span>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:"#fff",
-                              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{poi.name}</div>
-                            {poi.address && <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:1 }}>{poi.address}</div>}
+                            <div style={{ fontSize:13, fontWeight:700, color:"#f1f5f9",
+                              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                              {poi.name}
+                            </div>
+                            <div style={{ fontSize:11, color:"rgba(255,255,255,0.45)", marginTop:2,
+                              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                              {locationHint}
+                            </div>
                           </div>
                           <button onClick={() => {
                               const pt2 = { lat:poi.lat, lon:poi.lon, label:poi.name };
                               setToPt(pt2); setToQuery(poi.name); setToSugg([]);
                               if (fromPt) planRoute(fromPt, pt2);
                             }}
-                            style={{ padding:"4px 9px", borderRadius:99, border:"none", cursor:"pointer",
-                              background:"rgba(244,63,94,0.2)", color:"#fb7185", fontSize:10, fontWeight:700, flexShrink:0 }}>
+                            style={{ padding:"6px 12px", borderRadius:99, border:"none", cursor:"pointer",
+                              background:"rgba(244,63,94,0.2)", color:"#fb7185", fontSize:11, fontWeight:700,
+                              flexShrink:0, whiteSpace:"nowrap" }}>
                               Ir para
                           </button>
                         </div>
