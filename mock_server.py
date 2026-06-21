@@ -219,6 +219,11 @@ def _load_wfs_stops() -> None:
     except Exception as e:
         print(f"[STOPS] Erro ao carregar stops_data.json: {e}")
 
+# ── Normalização de texto (usada em POIs e busca) ────────────────────────────
+def _normalize(text: str) -> str:
+    """Remove acentos e normaliza para minúsculas — 'Ceilândia' → 'ceilandia'."""
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii").lower()
+
 # ── POIs manuais — locais icônicos do DF não mapeados no OSM ─────────────────
 def _mpoi(id_: str, name: str, lat: float, lon: float, tipo: str,
            address: str = "", phone: str = "", opening: str = "") -> dict:
@@ -451,9 +456,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="MobiDF AI (Mock)", version="1.0.0-demo", lifespan=lifespan)
 
-def _normalize(text: str) -> str:
-    """Remove acentos e normaliza para minúsculas — 'Ceilândia' → 'ceilandia'."""
-    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii").lower()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # ── dados em memória ──────────────────────────────────────────
