@@ -615,7 +615,7 @@ export default function CidadaoPage() {
                 style={{ width:"100%", padding:"13px 14px 13px 40px", borderRadius:16, border:"none",
                   background:"rgba(255,255,255,0.12)", color:"#fff", fontSize:14, outline:"none",
                   backdropFilter:"blur(8px)", boxSizing:"border-box" }}
-                placeholder="Buscar parada — ex: ceilandia, rodoviaria…"
+                placeholder="Buscar parada — ex: Ceilândia, Rodoviária…"
                 value={query}
                 onChange={e => {
                   setQuery(e.target.value);
