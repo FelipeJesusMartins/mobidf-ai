@@ -437,8 +437,8 @@ export default function CidadaoPage() {
       const plan = await api.cidadao.planRoute(from.lat, from.lon, to.lat, to.lon);
       setRoutePlan(plan);
       if (plan.routes.length > 0) setSelectedRoute(plan.routes[0]);
-    } catch (e) {
-      setRouteError(e instanceof Error ? e.message : "Erro ao calcular rota.");
+    } catch {
+      setRouteError("Serviço temporariamente indisponível. Tente novamente em instantes.");
     } finally { setRouteLoading(false); }
   }, []);
 
@@ -510,8 +510,8 @@ export default function CidadaoPage() {
             setSelectedStop(nearest);
             setTrips(await api.cidadao.nextTrips(nearest.stop_id));
           }
-        } catch (e: unknown) {
-          setGpsError(e instanceof Error ? e.message : "Erro ao buscar paradas próximas");
+        } catch {
+          setGpsError("Serviço indisponível. Toque em 🎯 para tentar novamente.");
         } finally { setGpsLoading(false); }
       },
       (err) => {
