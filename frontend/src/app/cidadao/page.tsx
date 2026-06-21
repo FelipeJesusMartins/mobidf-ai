@@ -1146,42 +1146,91 @@ export default function CidadaoPage() {
                           <div style={{ display:"flex", flexDirection:"column", gap:0, marginBottom:12 }}>
                             {route.legs.map((leg: {leg_type:string,from_stop_name:string,line_name:string,duration_min:number,to_stop_name:string}, li: number) => {
                               const isMetro = leg.leg_type === "metro";
+                              const nextLeg  = route.legs[li + 1] as {leg_type:string,line_name:string} | undefined;
                               const dotColor = li===0 ? "#10b981" : isMetro ? "#22c55e" : "#7c3aed";
                               const tagBg    = isMetro ? "#16a34a18" : "#6366f118";
                               const tagColor = isMetro ? "#16a34a" : "#6366f1";
+
+                              // Instrução contextual de baldeação
+                              const transferTip = nextLeg ? (() => {
+                                const cur  = leg.leg_type;
+                                const next = nextLeg.leg_type;
+                                const nl   = nextLeg.line_name.replace("Metrô ","");
+                                if (cur==="bus"   && next==="bus")
+                                  return `Desça do ônibus e aguarde o ${nl} — confira o destino na placa frontal`;
+                                if (cur==="bus"   && next==="metro")
+                                  return `Desça do ônibus e acesse a estação de metrô · Valide o cartão na catraca`;
+                                if (cur==="metro" && next==="bus")
+                                  return `Saia da estação e aguarde o ônibus ${nl} no ponto mais próximo`;
+                                if (cur==="metro" && next==="metro")
+                                  return `Troque de plataforma na estação para pegar o ${nl}`;
+                                return `Troque para ${nl} no ponto de baldeação`;
+                              })() : null;
+
                               return (
                                 <div key={li}>
                                   {/* Parada de embarque */}
-                                  <div style={{ display:"flex", alignItems:"center", gap:8, paddingBottom:4 }}>
+                                  <div style={{ display:"flex", alignItems:"flex-start", gap:8, paddingBottom:4 }}>
                                     <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:16, flexShrink:0 }}>
                                       <div style={{ width:10, height:10, borderRadius:"50%", background:dotColor,
-                                        border:"2px solid #fff", boxShadow:`0 0 0 1px ${dotColor}` }} />
-                                      <div style={{ width:2, height:20, background:"#e2e8f0", marginTop:2 }} />
+                                        border:"2px solid #fff", boxShadow:`0 0 0 1px ${dotColor}`, marginTop:2 }} />
+                                      <div style={{ width:2, flex:1, minHeight:22, background:"#e2e8f0", marginTop:2 }} />
                                     </div>
-                                    <div style={{ flex:1, minWidth:0 }}>
-                                      <div style={{ fontSize:10, color:"#334155", fontWeight:600,
+                                    <div style={{ flex:1, minWidth:0, paddingBottom:2 }}>
+                                      <div style={{ fontSize:10, color:"#334155", fontWeight:700,
                                         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                                         {leg.from_stop_name.replace("Metrô ","").replace("Terminal ","T. ").replace("Rodoviária do Plano Piloto","Rodoviária PP")}
+                                      </div>
+                                      <div style={{ fontSize:9, color:"#94a3b8", marginTop:1 }}>
+                                        {isMetro ? "Embarque na plataforma do metrô" : "Embarque no ponto de ônibus"}
                                       </div>
                                     </div>
                                     <div style={{ padding:"2px 7px", borderRadius:99, fontSize:9,
                                       fontWeight:800, background:tagBg, color:tagColor, flexShrink:0,
-                                      display:"flex", alignItems:"center", gap:3 }}>
+                                      display:"flex", alignItems:"center", gap:3, marginTop:1 }}>
                                       {isMetro ? "🚇" : "🚌"} {leg.line_name.replace("Metrô ","M.")} · {leg.duration_min}min
                                     </div>
                                   </div>
-                                  {/* Se última perna, mostra parada de desembarque */}
+
+                                  {/* Conector de baldeação entre pernas */}
+                                  {nextLeg && (
+                                    <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
+                                      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:16, flexShrink:0 }}>
+                                        <div style={{ width:2, height:8, background:"#e2e8f0" }} />
+                                        <div style={{ width:16, height:16, borderRadius:5, background:"#f1f5f9",
+                                          border:"1px solid #e2e8f0", display:"flex", alignItems:"center",
+                                          justifyContent:"center", fontSize:9, flexShrink:0 }}>🔄</div>
+                                        <div style={{ width:2, height:8, background:"#e2e8f0" }} />
+                                      </div>
+                                      <div style={{ flex:1, background:"#f8fafc", borderRadius:10,
+                                        padding:"6px 10px", border:"1px solid #e2e8f0", marginBottom:2 }}>
+                                        <div style={{ fontSize:9, fontWeight:800, color:"#dc2626",
+                                          textTransform:"uppercase", letterSpacing:"0.05em", marginBottom:2 }}>
+                                          Baldeação · {leg.to_stop_name.replace("Metrô ","").replace("Terminal ","").replace("Rodoviária do Plano Piloto","Rodoviária PP")}
+                                        </div>
+                                        <div style={{ fontSize:9, color:"#475569", lineHeight:1.4 }}>
+                                          {transferTip}
+                                        </div>
+                                        <div style={{ fontSize:9, color:"#94a3b8", marginTop:3 }}>
+                                          ⏱️ Espere ~8 min pelo próximo veículo
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Última perna: parada de desembarque */}
                                   {li === route.legs.length - 1 && (
-                                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                                      <div style={{ width:16, flexShrink:0, display:"flex", justifyContent:"center" }}>
+                                    <div style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                                      <div style={{ width:16, flexShrink:0, display:"flex", justifyContent:"center", paddingTop:2 }}>
                                         <div style={{ width:10, height:10, borderRadius:"50%", background:"#f43f5e",
                                           border:"2px solid #fff", boxShadow:"0 0 0 1px #f43f5e" }} />
                                       </div>
                                       <div style={{ flex:1, minWidth:0 }}>
-                                        <div style={{ fontSize:10, color:"#334155", fontWeight:600,
+                                        <div style={{ fontSize:10, color:"#334155", fontWeight:700,
                                           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                                           {leg.to_stop_name.replace("Metrô ","").replace("Terminal ","T. ").replace("Rodoviária do Plano Piloto","Rodoviária PP")}
                                         </div>
+                                        <div style={{ fontSize:9, color:"#94a3b8", marginTop:1 }}>Desembarque aqui · seu destino</div>
                                       </div>
                                     </div>
                                   )}
@@ -1189,6 +1238,32 @@ export default function CidadaoPage() {
                               );
                             })}
                           </div>
+
+                          {/* Explicativo de baldeação (aparece quando há transferência) */}
+                          {route.transfers > 0 && isSelected && (
+                            <div style={{ background:"#fffbeb", border:"1px solid #fcd34d",
+                              borderRadius:12, padding:"10px 12px", marginBottom:12 }}>
+                              <div style={{ fontSize:10, fontWeight:800, color:"#92400e",
+                                marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
+                                💡 O que é baldeação?
+                              </div>
+                              <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                                {[
+                                  ["🔄", "Você vai trocar de veículo no meio do caminho — é normal e seguro"],
+                                  ["🚏", "Desça no ponto indicado e aguarde o próximo ônibus ou metrô"],
+                                  ["🔍", "Confira sempre o destino escrito na placa frontal do ônibus antes de entrar"],
+                                  ["🎫", "Se usar cartão de transporte, é possível fazer integração tarifária — pergunte ao cobrador"],
+                                  ["🗺️", "Em dúvida no terminal, procure o painel de destinos ou pergunte ao fiscal"],
+                                  ["⏱️", "O tempo de espera médio em terminais do DF é de 5 a 12 minutos"],
+                                ].map(([icon, text], i) => (
+                                  <div key={i} style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+                                    <span style={{ fontSize:11, flexShrink:0 }}>{icon}</span>
+                                    <span style={{ fontSize:9, color:"#78350f", lineHeight:1.45 }}>{text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Footer: caminhada + conforto */}
                           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
