@@ -18,118 +18,189 @@ _OSM_TO_CAT: dict[str, str] = {
     "cafe":"cafe","bar":"bar","pub":"bar","biergarten":"bar","ice_cream":"sorvete",
     "confectionery":"doces","deli":"delicatessen","bakery":"padaria","butcher":"acougue",
     "greengrocer":"hortifruti","alcohol":"bebidas","beverages":"bebidas",
+    "juice_bar":"lanchonete","snack_bar":"lanchonete","food":"lanchonete",
+    "kitchen":"restaurante","pizzeria":"restaurante","sushi":"restaurante",
     # Comércio alimentar
     "supermarket":"supermercado","convenience":"mercadinho","marketplace":"feira",
-    "market":"feira","farm":"feira",
+    "market":"feira","farm":"feira","wholesale":"supermercado","general":"mercadinho",
     # Saúde
     "hospital":"hospital","clinic":"ubs","health_centre":"ubs","doctors":"ubs",
     "pharmacy":"farmacia","dentist":"dentista","veterinary":"veterinario",
-    "optician":"otica",
+    "optician":"otica","nursing_home":"hospital","social_facility":"hospital",
+    "blood_bank":"hospital","dialysis":"hospital","laboratory":"ubs",
     # Educação
     "school":"escola","kindergarten":"creche","childcare":"creche",
-    "university":"universidade","college":"universidade",
+    "university":"universidade","college":"universidade","language_school":"escola",
+    "music_school":"escola","driving_school":"escola","tutoring":"escola",
     # Serviços financeiros
     "bank":"banco","atm":"caixa_eletronico","bureau_de_change":"cambio",
+    "financial_advisor":"banco","insurance":"banco","accountant":"banco",
     # Governo / segurança
     "police":"delegacia","fire_station":"bombeiros","post_office":"correio",
     "courthouse":"tribunal","townhall":"orgao_publico","government":"orgao_publico",
-    "embassy":"embaixada","library":"biblioteca",
+    "embassy":"embaixada","library":"biblioteca","community_centre":"orgao_publico",
+    "social_centre":"orgao_publico","prison":"orgao_publico","ranger_station":"orgao_publico",
     # Transporte
     "bus_station":"rodoviaria","aerodrome":"aeroporto","ferry_terminal":"balsa",
     "fuel":"posto","car_wash":"lava_jato","car_repair":"mecanica",
     "car":"concessionaria","car_parts":"autopecas","bicycle":"bicicletaria",
+    "motorcycle":"concessionaria","tyres":"mecanica","charging_station":"recarga_ev",
     # Lazer / esportes
-    "park":"parque","garden":"parque","nature_reserve":"parque",
+    "park":"parque","garden":"parque","nature_reserve":"parque","forest":"parque",
     "fitness_centre":"academia","gym":"academia","sports_centre":"esportes",
     "stadium":"estadio","swimming_pool":"piscina","playground":"playground",
-    "leisure_centre":"lazer",
+    "leisure_centre":"lazer","pitch":"esportes","track":"esportes",
+    "golf_course":"esportes","miniature_golf":"esportes","disc_golf_course":"esportes",
+    "water_park":"lazer","beach":"lazer","marina":"lazer",
     # Cultura / entretenimento
     "theatre":"teatro","cinema":"cinema","museum":"museu","gallery":"galeria",
     "attraction":"atracoes","viewpoint":"mirador","arts_centre":"cultura",
-    "nightclub":"balada","casino":"cassino",
+    "nightclub":"balada","casino":"cassino","escape_game":"lazer",
+    "amusement_arcade":"lazer","bowling_alley":"lazer",
     # Hospedagem
     "hotel":"hotel","hostel":"hotel","motel":"hotel","guest_house":"hotel",
+    "apartment":"hotel","camp_site":"hotel","caravan_site":"hotel",
     # Saúde / bem-estar
     "beauty":"salao","hairdresser":"barbearia","massage":"spa","spa":"spa",
-    "tattoo":"tatuagem",
-    # Lojas
-    "mall":"shopping","clothes":"roupas","shoes":"calcados",
+    "tattoo":"tatuagem","nail_salon":"salao","tanning_salon":"salao",
+    # Lojas (shop=)
+    "mall":"shopping","clothes":"roupas","shoes":"calcados","fashion":"roupas",
+    "second_hand":"roupas","variety_store":"roupas",
     "electronics":"eletronicos","mobile_phone":"celulares","computer":"informatica",
-    "hardware":"ferragens","furniture":"moveis","sports":"esportes_loja",
+    "hardware":"ferragens","furniture":"moveis","interior_decoration":"moveis",
+    "sports":"esportes_loja","outdoor":"esportes_loja","bicycle":"bicicletaria",
     "florist":"floricultura","pet":"petshop","books":"livraria",
     "jewelry":"joalheria","gift":"presentes","toys":"brinquedos",
     "stationery":"papelaria","copyshop":"papelaria","photo":"fotografo",
-    "musical_instrument":"musica","outdoor":"esportes_loja",
+    "musical_instrument":"musica","optician":"otica",
     "laundry":"lavanderia","dry_cleaning":"lavanderia",
     "travel_agency":"agencia_viagem","ticket":"ingressos",
+    "lottery":"comercio","newsagent":"comercio","kiosk":"comercio",
+    "beauty_supply":"salao","cosmetics":"salao","perfumery":"salao",
+    "health_food":"hortifruti","organic":"hortifruti",
+    "appliance":"eletronicos","hifi":"eletronicos","video_games":"eletronicos",
+    "paint":"ferragens","glaziery":"ferragens","doors":"ferragens","windows":"ferragens",
+    "electrical":"ferragens","plumbing":"ferragens","locksmith":"ferragens",
+    "car_parts":"autopecas","motorcycle_parts":"autopecas",
+    "garden_centre":"hortifruti","agrarian":"comercio",
+    "craft":"comercio","frame":"comercio","art":"galeria",
     # Religião
-    "place_of_worship":"igrejas",
+    "place_of_worship":"igrejas","chapel":"igrejas","church":"igrejas",
+    "cathedral":"igrejas","mosque":"igrejas","temple":"igrejas","shrine":"igrejas",
+    # Craft (artesanato / serviços manuais)
+    "bakery":"padaria","confectionery":"doces","caterer":"restaurante",
+    "carpenter":"ferragens","electrician":"ferragens","plumber":"ferragens",
+    "painter":"ferragens","roofer":"ferragens","tailor":"roupas",
+    "shoemaker":"calcados","watchmaker":"joalheria","photographer":"fotografo",
+    "dressmaker":"roupas","embroiderer":"roupas","jeweller":"joalheria",
+    "key_cutter":"ferragens","locksmith":"ferragens",
     # Outros
-    "parking":"estacionamento","yes":"comercio","charging_station":"recarga_ev",
+    "parking":"estacionamento","yes":"comercio","vending_machine":"comercio",
+    "recycling":"comercio","waste_disposal":"comercio",
 }
 
 # Keyword (normalizado) → lista de tipos para filtrar
 _KW_TO_TYPES: dict[str, list[str]] = {
-    "feira":["feira"],"mercado":["feira","supermercado"],"mercadao":["feira"],
-    "hospital":["hospital"],"ubs":["ubs"],"posto saude":["ubs"],"clinica":["ubs"],
-    "saude":["hospital","ubs","dentista","farmacia"],
-    "farmacia":["farmacia"],"remedio":["farmacia"],
-    "escola":["escola","creche"],"colegio":["escola"],"creche":["creche"],
-    "universidade":["universidade"],"faculdade":["universidade"],"unb":["universidade"],
-    "shopping":["shopping"],"mall":["shopping"],
-    "parque":["parque"],"jardim":["parque"],"natureza":["parque"],
-    "academia":["academia"],"gym":["academia"],"ginasio":["academia"],
-    "banco":["banco"],"agencia":["banco"],"caixa":["banco","caixa_eletronico"],
-    "restaurante":["restaurante","lanchonete"],"comida":["restaurante","lanchonete","cafe"],
-    "lanchonete":["lanchonete"],"fast food":["lanchonete"],"fastfood":["lanchonete"],
-    "padaria":["padaria"],"cafe":["cafe"],"cafeteria":["cafe"],
-    "bar":["bar"],"pub":["bar"],"boteco":["bar"],
-    "supermercado":["supermercado","mercadinho"],"mercadinho":["mercadinho"],
-    "posto":["posto"],"gasolina":["posto"],"combustivel":["posto"],
-    "delegacia":["delegacia"],"policia":["delegacia"],
-    "bombeiro":["bombeiros"],"defesa civil":["bombeiros"],
-    "correio":["correio"],"sedex":["correio"],
-    "biblioteca":["biblioteca"],"livro":["biblioteca","livraria"],
-    "livraria":["livraria"],
-    "museu":["museu"],"galeria":["galeria","museu"],
-    "teatro":["teatro"],"cinema":["cinema"],"filme":["cinema"],
-    "hotel":["hotel"],"pousada":["hotel"],"hostel":["hotel"],
-    "rodoviaria":["rodoviaria"],"onibus":["rodoviaria"],
-    "aeroporto":["aeroporto"],"voo":["aeroporto"],
-    "igrejas":["igrejas"],"igreja":["igrejas"],"templo":["igrejas"],
-    "dentista":["dentista"],"odontologo":["dentista"],
-    "veterinario":["veterinario"],"pet":["petshop","veterinario"],
-    "petshop":["petshop"],"animal":["petshop","veterinario"],
-    "otica":["otica"],"oculos":["otica"],
-    "mecanica":["mecanica"],"mecanico":["mecanica"],"oficina":["mecanica"],
-    "lavajato":["lava_jato"],"lavar carro":["lava_jato"],
-    "autoparts":["autopecas"],"pecas":["autopecas"],
-    "barbearia":["barbearia"],"barbeiro":["barbearia"],"cabeleireiro":["barbearia","salao"],
-    "salao":["salao"],"beleza":["salao","barbearia","spa"],
-    "spa":["spa"],"massagem":["spa"],
-    "roupas":["roupas"],"moda":["roupas","calcados"],"calcados":["calcados"],
-    "informatica":["informatica","eletronicos"],"computador":["informatica"],
-    "celular":["celulares"],"smartphone":["celulares"],
-    "eletronico":["eletronicos"],"eletrodomestico":["eletronicos"],
-    "ferramenta":["ferragens"],"construcao":["ferragens"],
-    "moveis":["moveis"],"decoracao":["moveis"],
-    "esportes":["esportes","academia","esportes_loja"],"esporte":["esportes","academia"],
-    "estadio":["estadio"],"arena":["estadio"],
-    "piscina":["piscina"],"natacao":["piscina"],
-    "flores":["floricultura"],"floricultura":["floricultura"],
-    "lavanderia":["lavanderia"],"roupa suja":["lavanderia"],
-    "brinquedo":["brinquedos"],"crianca":["brinquedos","creche","playground"],
-    "doce":["doces","sorvete"],"sorvete":["sorvete"],
-    "acougue":["acougue"],"carne":["acougue"],
+    # Alimentação
+    "padaria":["padaria"],"panificacao":["padaria"],"pao":["padaria"],
+    "cafe":["cafe"],"cafeteria":["cafe"],"cafezinho":["cafe"],
+    "restaurante":["restaurante"],"comida":["restaurante","lanchonete","cafe"],
+    "lanchonete":["lanchonete"],"lancha":["lanchonete"],"fast food":["lanchonete"],
+    "pizza":["restaurante"],"pizzaria":["restaurante"],"sushi":["restaurante"],
+    "churrascaria":["restaurante"],"rodizio":["restaurante"],
+    "bar":["bar"],"boteco":["bar"],"pub":["bar"],"cerveja":["bar"],
+    "sorvete":["sorvete"],"sorveterio":["sorvete"],"acai":["sorvete"],
+    "doce":["doces"],"confeitaria":["doces"],"bolo":["doces"],
+    "acougue":["acougue"],"carne":["acougue"],"frigorífico":["acougue"],
     "hortifruti":["hortifruti"],"verdura":["hortifruti"],"fruta":["hortifruti"],
-    "joalheria":["joalheria"],"joia":["joalheria"],
-    "tatuagem":["tatuagem"],"piercing":["tatuagem"],
-    "turismo":["atracoes","museu","mirador"],"turista":["atracoes","hotel"],
-    "camping":["parque"],"trilha":["parque"],
-    "balada":["balada"],"night":["balada"],"boate":["balada"],
-    "recarga":["recarga_ev"],"eletrico":["recarga_ev"],
+    "feira":["feira"],"mercadao":["feira"],"importados":["feira"],
+    "mercado":["feira","supermercado","mercadinho"],
+    "supermercado":["supermercado"],"hipermercado":["supermercado"],
+    "mercadinho":["mercadinho"],"minimercado":["mercadinho"],"conveniencia":["mercadinho"],
+    "bebida":["bebidas"],"bebidas":["bebidas"],"adega":["bebidas"],
+    # Saúde
+    "farmacia":["farmacia"],"drogaria":["farmacia"],"remedio":["farmacia"],"droga":["farmacia"],
+    "hospital":["hospital"],"upa":["hospital"],"pronto socorro":["hospital","ubs"],
+    "ubs":["ubs"],"usi":["ubs"],"posto saude":["ubs"],"clinica":["ubs"],"medico":["ubs"],
+    "saude":["hospital","ubs","dentista","farmacia"],
+    "dentista":["dentista"],"odontologo":["dentista"],"odontologia":["dentista"],
+    "veterinario":["veterinario"],"clinica vet":["veterinario"],
+    "otica":["otica"],"oculos":["otica"],"lente":["otica"],
+    # Educação
+    "escola":["escola"],"colegio":["escola"],"ensino":["escola"],
+    "creche":["creche"],"berçario":["creche"],
+    "universidade":["universidade"],"faculdade":["universidade"],
+    "unb":["universidade"],"ucb":["universidade"],"iesb":["universidade"],
+    "curso":["escola"],"idioma":["escola"],"ingles":["escola"],
+    "autoescola":["escola"],"cfc":["escola"],
+    # Bancos / Finanças
+    "banco":["banco"],"agencia":["banco"],"financeira":["banco"],
+    "caixa":["banco","caixa_eletronico"],"caixa eletronico":["caixa_eletronico"],
+    "atm":["caixa_eletronico"],"24h":["caixa_eletronico"],
+    # Governo / Serviços públicos
+    "delegacia":["delegacia"],"policia":["delegacia"],"dp":["delegacia"],
+    "bombeiro":["bombeiros"],"corpo de bombeiros":["bombeiros"],
+    "correio":["correio"],"agencia correio":["correio"],"sedex":["correio"],
+    "biblioteca":["biblioteca"],"livro":["biblioteca","livraria"],
+    "cartorio":["orgao_publico"],"junta comercial":["orgao_publico"],
     "orgao publico":["orgao_publico"],"governo":["orgao_publico"],
+    "tribunal":["orgao_publico"],"detran":["orgao_publico"],
     "embaixada":["embaixada"],"consulado":["embaixada"],
+    # Transporte
+    "posto":["posto"],"gasolina":["posto"],"combustivel":["posto"],"etanol":["posto"],
+    "rodoviaria":["rodoviaria"],"onibus":["rodoviaria"],"terminal":["rodoviaria"],
+    "aeroporto":["aeroporto"],"voo":["aeroporto"],
+    "mecanica":["mecanica"],"oficina":["mecanica"],"mecanico":["mecanica"],
+    "lava jato":["lava_jato"],"lavajato":["lava_jato"],"lavar carro":["lava_jato"],
+    "autopecas":["autopecas"],"pecas":["autopecas"],"pecas auto":["autopecas"],
+    "concessionaria":["concessionaria"],"revendedora":["concessionaria"],
+    "recarga":["recarga_ev"],"eletrico":["recarga_ev"],
+    # Lazer / Esportes
+    "shopping":["shopping"],"mall":["shopping"],"center":["shopping"],
+    "parque":["parque"],"jardim":["parque"],"natureza":["parque"],
+    "trilha":["parque"],"camping":["parque"],"ecologia":["parque"],
+    "academia":["academia"],"gym":["academia"],"ginasio":["academia"],"musculacao":["academia"],
+    "piscina":["piscina"],"natacao":["piscina"],
+    "estadio":["estadio"],"arena":["estadio"],"campo":["esportes"],
+    "esporte":["esportes","academia","esportes_loja"],
+    "playground":["playground"],"brinquedo":["brinquedos","playground"],
+    "balada":["balada"],"boate":["balada"],"night":["balada"],"festa":["balada"],
+    # Cultura / Turismo
+    "museu":["museu"],"galeria":["galeria","museu"],"exposicao":["museu"],
+    "teatro":["teatro"],"show":["teatro"],"concerto":["teatro"],
+    "cinema":["cinema"],"filme":["cinema"],
+    "turismo":["atracoes","museu"],"turista":["atracoes","hotel"],
+    "monumento":["atracoes"],"palacio":["atracoes"],"congresso":["atracoes"],
+    "igrejas":["igrejas"],"igreja":["igrejas"],"templo":["igrejas"],
+    "catedral":["igrejas"],"evangelica":["igrejas"],"batista":["igrejas"],
+    # Hospedagem
+    "hotel":["hotel"],"pousada":["hotel"],"hostel":["hotel"],"motel":["hotel"],
+    # Beleza / Bem-estar
+    "barbearia":["barbearia"],"barbeiro":["barbearia"],
+    "cabeleireiro":["barbearia","salao"],"cabelo":["barbearia","salao"],
+    "salao":["salao"],"manicure":["salao"],"pedicure":["salao"],
+    "beleza":["salao","barbearia","spa"],"estetica":["salao","spa"],
+    "spa":["spa"],"massagem":["spa"],"relaxamento":["spa"],
+    "tatuagem":["tatuagem"],"tattoo":["tatuagem"],"piercing":["tatuagem"],
+    # Lojas
+    "roupas":["roupas"],"moda":["roupas","calcados"],"boutique":["roupas"],
+    "calcados":["calcados"],"sapato":["calcados"],"tenis":["calcados"],
+    "eletronico":["eletronicos"],"eletrodomestico":["eletronicos"],
+    "celular":["celulares"],"smartphone":["celulares"],"chip":["celulares"],
+    "informatica":["informatica"],"computador":["informatica"],"notebook":["informatica"],
+    "ferragens":["ferragens"],"ferramenta":["ferragens"],"construcao":["ferragens"],
+    "material construcao":["ferragens"],"loja construcao":["ferragens"],
+    "moveis":["moveis"],"decoracao":["moveis"],"casa":["moveis"],
+    "flores":["floricultura"],"floricultura":["floricultura"],"buque":["floricultura"],
+    "pet":["petshop","veterinario"],"petshop":["petshop"],"animal":["petshop","veterinario"],
+    "livraria":["livraria"],"papelaria":["papelaria"],"escola material":["papelaria"],
+    "joalheria":["joalheria"],"joia":["joalheria"],"relogio":["joalheria"],
+    "presentes":["presentes"],"gift":["presentes"],"lembranca":["presentes"],
+    "lavanderia":["lavanderia"],"lavar roupa":["lavanderia"],"tinturaria":["lavanderia"],
+    "musica":["musica"],"instrumento":["musica"],"guitarra":["musica"],
+    "fotografo":["fotografo"],"foto":["fotografo"],"retratos":["fotografo"],
+    "artesanato":["comercio"],"artesao":["comercio"],
+    "hortifruti":["hortifruti"],"verdura":["hortifruti"],"fruta":["hortifruti"],
 }
 
 # ── Paradas WFS (carregadas do stops_data.json) ───────────────────────────────
@@ -148,59 +219,101 @@ def _load_wfs_stops() -> None:
     except Exception as e:
         print(f"[STOPS] Erro ao carregar stops_data.json: {e}")
 
+# ── POIs manuais — locais icônicos do DF não mapeados no OSM ─────────────────
+def _mpoi(id_: str, name: str, lat: float, lon: float, tipo: str,
+           address: str = "", phone: str = "", opening: str = "") -> dict:
+    return {"id": id_, "name": name, "name_lower": _normalize(name),
+            "lat": lat, "lon": lon, "type": tipo,
+            "address": address, "phone": phone, "opening": opening}
+
+_POIS_MANUAIS: list[dict] = [
+    # ── Feiras / Mercados ──
+    _mpoi("manual-sia-fair",    "Feira dos Importados do SIA",          -15.8129, -47.9219, "feira",        "SIA Trecho 2", "", "Ter–Dom 10h–18h"),
+    _mpoi("manual-jd-fair",     "Feira do Jd. Botânico",                -15.8619, -47.8347, "feira",        "Jardim Botânico"),
+    _mpoi("manual-cei-fair",    "Feira Central de Ceilândia",           -15.8284, -48.1046, "feira",        "Centro de Ceilândia"),
+    _mpoi("manual-tag-fair",    "Feira de Taguatinga",                  -15.8280, -48.0530, "feira",        "Centro de Taguatinga"),
+    _mpoi("manual-sam-fair",    "Feira de Samambaia",                   -15.8780, -48.0800, "feira",        "Samambaia Sul"),
+    _mpoi("manual-sobr-fair",   "Feira de Sobradinho",                  -15.6510, -47.8010, "feira",        "Sobradinho"),
+    _mpoi("manual-plan-fair",   "Feira de Planaltina",                  -15.6168, -47.6528, "feira",        "Planaltina"),
+    _mpoi("manual-gama-fair",   "Feira do Gama",                        -16.0035, -48.0628, "feira",        "Gama Leste"),
+    _mpoi("manual-gua-fair",    "Feira do Guará",                       -15.8313, -47.9778, "feira",        "Guará II"),
+    _mpoi("manual-asa-sul-fair","Feira da Asa Sul (SQS 506)",           -15.8313, -47.9118, "feira",        "SQS 506"),
+    _mpoi("manual-cruz-fair",   "Feira do Cruzeiro",                    -15.8024, -48.0073, "feira",        "Cruzeiro Novo"),
+    _mpoi("manual-rncl-fair",   "Feira do Recanto das Emas",            -15.9119, -48.0618, "feira",        "Recanto das Emas"),
+    _mpoi("manual-braz-fair",   "Feira de Brazlândia",                  -15.6741, -48.2030, "feira",        "Brazlândia"),
+    _mpoi("manual-paren-fair",  "Feira do Paranoá",                     -15.7769, -47.7736, "feira",        "Paranoá"),
+    _mpoi("manual-plant-fair",  "Feira da Torre de TV",                 -15.7985, -47.8919, "feira",        "Eixo Monumental"),
+    # ── Hospitais / UBS referência ──
+    _mpoi("manual-hran",        "HRAN – Hosp. Regional da Asa Norte",   -15.7572, -47.9039, "hospital",     "SMHN Q. 101"),
+    _mpoi("manual-hras",        "HRAS – Hosp. Regional da Asa Sul",     -15.8216, -47.9039, "hospital",     "SMHS Q. 301"),
+    _mpoi("manual-hrt",         "HRT – Hospital Regional de Taguatinga",-15.8175, -48.0543, "hospital",     "Taguatinga"),
+    _mpoi("manual-hrc",         "HRC – Hospital Regional de Ceilândia", -15.8250, -48.1028, "hospital",     "Ceilândia"),
+    _mpoi("manual-hrg",         "HRG – Hospital Regional do Gama",      -16.0073, -48.0659, "hospital",     "Gama"),
+    _mpoi("manual-hrsam",       "HRSam – Hosp. Regional de Samambaia",  -15.8742, -48.0768, "hospital",     "Samambaia"),
+    _mpoi("manual-hrsobr",      "Hospital Regional de Sobradinho",      -15.6440, -47.7980, "hospital",     "Sobradinho"),
+    _mpoi("manual-hrplan",      "Hospital Regional de Planaltina",      -15.6285, -47.6702, "hospital",     "Planaltina"),
+    _mpoi("manual-hbdf",        "HBDF – Hospital de Base do DF",        -15.7804, -47.9380, "hospital",     "Asa Sul / SMH"),
+    _mpoi("manual-hm",          "HM – Hospital da Mulher",              -15.7822, -47.9355, "hospital",     "SMH Q. 101"),
+    # ── Shoppings ──
+    _mpoi("manual-iguatemi",    "Shopping Iguatemi Brasília",           -15.8304, -47.9496, "shopping",     "Setor de Diversões Sul"),
+    _mpoi("manual-park",        "Shopping Park",                        -15.8348, -47.9576, "shopping",     "Parkshopping – Águas Claras adj"),
+    _mpoi("manual-liberty-mall","Liberty Mall",                         -15.7859, -47.9012, "shopping",     "SQN 308"),
+    _mpoi("manual-conjunto",    "Conjunto Nacional",                    -15.7921, -47.8876, "shopping",     "Eixo Monumental Leste"),
+    _mpoi("manual-patio-brasil","Pátio Brasil Shopping",                -15.7951, -47.8905, "shopping",     "SCS Q. 07"),
+    _mpoi("manual-terraço",     "Terraço Shopping",                     -15.8244, -47.9254, "shopping",     "SGAS 902"),
+    _mpoi("manual-taguatinga-s","Taguatinga Shopping",                  -15.8280, -48.0565, "shopping",     "QI 23 – Taguatinga"),
+    _mpoi("manual-gilberto",    "Shopping Gilberto Salomão",            -15.8547, -47.8748, "shopping",     "Lago Sul"),
+    _mpoi("manual-torre",       "Shopping Torre",                       -15.7940, -47.8900, "shopping",     "Eixo Monumental"),
+    _mpoi("manual-polo-moda",   "Polo de Moda de Taguatinga",          -15.8290, -48.0510, "shopping",     "CNB 4 – Taguatinga"),
+    # ── Pontos turísticos / Cultura ──
+    _mpoi("manual-cong",        "Congresso Nacional",                   -15.7997, -47.8640, "atracoes",     "Praça dos Três Poderes"),
+    _mpoi("manual-planalto",    "Palácio do Planalto",                  -15.7990, -47.8600, "atracoes",     "Praça dos Três Poderes"),
+    _mpoi("manual-justiça",     "Supremo Tribunal Federal (STF)",       -15.8008, -47.8620, "atracoes",     "Praça dos Três Poderes"),
+    _mpoi("manual-torre-tv",    "Torre de TV de Brasília",              -15.7985, -47.8919, "atracoes",     "Eixo Monumental"),
+    _mpoi("manual-pontao",      "Pontão do Lago Sul",                   -15.8383, -47.8731, "lazer",        "Lago Sul"),
+    _mpoi("manual-parque-cidade","Parque da Cidade – Sarah Kubitscheck",-15.8034, -47.9228, "parque",       "Asa Sul"),
+    _mpoi("manual-parq-olhos",  "Parque dos Olhos D'Água",              -15.7484, -47.9071, "parque",       "Asa Norte"),
+    _mpoi("manual-jb",          "Jardim Botânico de Brasília",          -15.8672, -47.8269, "parque",       "Jardim Botânico"),
+    _mpoi("manual-ceilbot",     "Parque Três Meninas (Ceilândia)",      -15.8194, -48.1148, "parque",       "Ceilândia Norte"),
+    _mpoi("manual-catetinho",   "Museu do Catetinho",                   -15.8648, -47.9600, "museu",        "Zona Rural Sul"),
+    _mpoi("manual-jk-mem",      "Memorial JK",                         -15.7942, -47.9153, "museu",        "Eixo Monumental"),
+    _mpoi("manual-museu-rep",   "Museu da República",                   -15.7985, -47.8824, "museu",        "Eixo Cultural Leste"),
+    _mpoi("manual-bnb-cult",    "Centro Cultural Banco do Brasil",      -15.7964, -47.8858, "cultura",      "SBS Q. 04"),
+    _mpoi("manual-catedral",    "Catedral Metropolitana de Brasília",   -15.7989, -47.8752, "igrejas",      "Eixo Monumental"),
+    _mpoi("manual-santuario",   "Santuário Dom Bosco",                  -15.7948, -47.9003, "igrejas",      "SQS 702/703"),
+    # ── Terminais / Transporte ──
+    _mpoi("manual-rodo-pp",     "Rodoviária do Plano Piloto",           -15.7942, -47.8825, "rodoviaria",   "Eixo Monumental"),
+    _mpoi("manual-rodo-inter",  "Rodoviária Interestadual de Brasília", -15.7929, -47.8855, "rodoviaria",   "SRN Trecho 1"),
+    _mpoi("manual-aero-bsb",    "Aeroporto Internacional de Brasília",  -15.8711, -47.9186, "aeroporto",    "Lago Sul / SAIS"),
+    # ── Universidades / Faculdades ──
+    _mpoi("manual-unb",         "Universidade de Brasília (UnB)",       -15.7634, -47.8719, "universidade", "Campus Darcy Ribeiro"),
+    _mpoi("manual-ucb",         "Universidade Católica de Brasília",    -15.8326, -48.0467, "universidade", "ÉPMS Trecho 01 – Taguatinga"),
+    _mpoi("manual-iesb",        "IESB – Instituto de Educação Superior",-15.7946, -47.9134, "universidade", "SGAS 613/614"),
+    _mpoi("manual-facdf",       "FAC – Faculdade de Ciências e Educ.",  -15.7950, -47.9020, "universidade", "SQS 710"),
+    _mpoi("manual-uniceub",     "UniCEUB",                              -15.7933, -47.8965, "universidade", "SEPN 707/907"),
+    # ── Parques ecológicos / lazer ──
+    _mpoi("manual-parq-agua",   "Parque Águas Claras",                  -15.8434, -48.0200, "parque",       "Águas Claras"),
+    _mpoi("manual-parq-gua",    "Parque do Guará",                      -15.8283, -47.9788, "parque",       "Guará II"),
+    _mpoi("manual-parq-cana",   "Parque Canela de Ema",                 -15.8752, -47.9856, "parque",       "Samambaia"),
+    _mpoi("manual-pisci-sb",    "Piscinão de Sobradinho",               -15.6523, -47.8128, "lazer",        "Sobradinho"),
+    _mpoi("manual-lago-norte",  "Orla do Lago Norte",                   -15.7346, -47.8694, "lazer",        "Lago Norte"),
+    _mpoi("manual-orla-sul",    "Orla do Lago Sul",                     -15.8480, -47.8600, "lazer",        "Lago Sul"),
+]
+
 # ── In-memory store de todos os POIs do DF ────────────────────────────────────
 _ALL_POIS: list[dict] = []
 _pois_loaded = False
 
-async def _load_pois() -> None:
-    global _ALL_POIS, _pois_loaded
-    BBOX = "-16.1,-48.4,-15.4,-47.3"
+_POI_BBOX = "-16.1,-48.4,-15.4,-47.3"
 
-    queries = [
-        # 1. Todos os nodes/ways com nome e qualquer tag relevante
-        f"[out:json][timeout:60];(\n"
-        f'  node["name"]["amenity"]({BBOX});\n'
-        f'  node["name"]["shop"]({BBOX});\n'
-        f'  node["name"]["leisure"]({BBOX});\n'
-        f'  node["name"]["tourism"]({BBOX});\n'
-        f'  node["name"]["healthcare"]({BBOX});\n'
-        f'  node["name"]["office"]({BBOX});\n'
-        f'  node["name"]["aeroway"]({BBOX});\n'
-        f'  way["name"]["amenity"]({BBOX});\n'
-        f'  way["name"]["shop"]({BBOX});\n'
-        f'  way["name"]["leisure"]({BBOX});\n'
-        f'  way["name"]["tourism"]({BBOX});\n'
-        f'  way["name"]["healthcare"]({BBOX});\n'
-        f');\nout center 8000;',
-        # 2. Redes/marcas (McDonald's, Carrefour, Itaú…) sem nome explícito
-        f"[out:json][timeout:30];(\n"
-        f'  node["brand"]({BBOX});\n'
-        f'  node["operator"]["amenity"]({BBOX});\n'
-        f');\nout body 2000;',
-    ]
-
-    all_elements: list = []
-    try:
-        async with _httpx.AsyncClient(timeout=70) as client:
-            for q in queries:
-                try:
-                    r = await client.post(
-                        "https://overpass-api.de/api/interpreter",
-                        data={"data": q},
-                        headers={"Accept": "application/json", "User-Agent": "MobiDF-AI/1.0"},
-                    )
-                    all_elements.extend(r.json().get("elements", []))
-                except Exception as e:
-                    print(f"[POI] query error: {e}")
-    except Exception as e:
-        print(f"[POI] client error: {e}")
-
+def _parse_poi_elements(elements: list) -> list[dict]:
+    """Converte elementos brutos do Overpass em dicts normalizados."""
     seen: set[str] = set()
     pois: list[dict] = []
-    for el in all_elements:
+    for el in elements:
         tags = el.get("tags", {})
-        name = (tags.get("name") or tags.get("brand") or "").strip()
-        if not name: continue
+        name = (tags.get("name") or tags.get("brand") or tags.get("operator") or "").strip()
+        if not name or len(name) < 2: continue
         key = f"{name}_{el['id']}"
         if key in seen: continue
         seen.add(key)
@@ -210,7 +323,7 @@ async def _load_pois() -> None:
         if not lat or not lon: continue
 
         cat = "local"
-        for osm_key in ("amenity", "shop", "leisure", "tourism", "healthcare", "aeroway", "office"):
+        for osm_key in ("amenity","shop","leisure","tourism","healthcare","aeroway","office","craft","man_made"):
             val = tags.get(osm_key, "")
             if val in _OSM_TO_CAT:
                 cat = _OSM_TO_CAT[val]; break
@@ -224,14 +337,85 @@ async def _load_pois() -> None:
             "lat":        lat,
             "lon":        lon,
             "type":       cat,
-            "address":    tags.get("addr:street", tags.get("addr:suburb", "")),
-            "phone":      tags.get("phone", tags.get("contact:phone", "")),
+            "address":    tags.get("addr:street", tags.get("addr:suburb", tags.get("addr:city",""))),
+            "phone":      tags.get("phone", tags.get("contact:phone", tags.get("contact:mobile",""))),
             "opening":    tags.get("opening_hours", ""),
         })
+    return pois
 
-    _ALL_POIS = pois
+async def _load_pois() -> None:
+    global _ALL_POIS, _pois_loaded
+    BB = _POI_BBOX
+
+    # Dividimos em 3 lotes para evitar timeout do Overpass e obter TODOS os POIs
+    queries = [
+        # Lote 1: amenidade + saúde + educação + governo (sem limite)
+        f"[out:json][timeout:120];(\n"
+        f'  node["name"]["amenity"]({BB});\n'
+        f'  node["name"]["healthcare"]({BB});\n'
+        f'  node["name"]["office"]({BB});\n'
+        f'  node["name"]["aeroway"]({BB});\n'
+        f'  way["name"]["amenity"]({BB});\n'
+        f'  way["name"]["healthcare"]({BB});\n'
+        f');\nout center;',
+        # Lote 2: comércio + serviços + lazer (sem limite)
+        f"[out:json][timeout:120];(\n"
+        f'  node["name"]["shop"]({BB});\n'
+        f'  node["name"]["leisure"]({BB});\n'
+        f'  node["name"]["tourism"]({BB});\n'
+        f'  node["name"]["craft"]({BB});\n'
+        f'  way["name"]["shop"]({BB});\n'
+        f'  way["name"]["leisure"]({BB});\n'
+        f'  way["name"]["tourism"]({BB});\n'
+        f');\nout center;',
+        # Lote 3: redes/marcas + operadores nomeados
+        f"[out:json][timeout:60];(\n"
+        f'  node["brand"]({BB});\n'
+        f'  node["operator"]["amenity"]({BB});\n'
+        f'  node["operator"]["shop"]({BB});\n'
+        f');\nout body;',
+    ]
+
+    all_elements: list = []
+    try:
+        async with _httpx.AsyncClient(timeout=130) as client:
+            for q in queries:
+                try:
+                    r = await client.post(
+                        "https://overpass-api.de/api/interpreter",
+                        data={"data": q},
+                        headers={"Accept": "application/json", "User-Agent": "MobiDF-AI/1.0"},
+                    )
+                    all_elements.extend(r.json().get("elements", []))
+                except Exception as e:
+                    print(f"[POI] query error: {e}")
+    except Exception as e:
+        print(f"[POI] client error: {e}")
+
+    _ALL_POIS = _parse_poi_elements(all_elements)
     _pois_loaded = True
-    print(f"[POI] {len(pois):,} pontos de interesse carregados do OpenStreetMap")
+    print(f"[POI] {len(_ALL_POIS):,} pontos de interesse carregados do OpenStreetMap")
+
+async def _overpass_live_search(q_norm: str) -> list[dict]:
+    """Busca ao vivo no Overpass para nomes específicos não encontrados no cache."""
+    # Busca por nome exato ou parcial no DF
+    query = (
+        f'[out:json][timeout:20];(\n'
+        f'  node["name"~"{q_norm}",i]{_POI_BBOX};\n'
+        f'  way["name"~"{q_norm}",i]{_POI_BBOX};\n'
+        f');\nout center 40;'
+    )
+    try:
+        async with _httpx.AsyncClient(timeout=25) as client:
+            r = await client.post(
+                "https://overpass-api.de/api/interpreter",
+                data={"data": query},
+                headers={"Accept": "application/json", "User-Agent": "MobiDF-AI/1.0"},
+            )
+            elements = r.json().get("elements", [])
+            return _parse_poi_elements(elements)
+    except Exception:
+        return []
 
 
 @asynccontextmanager
@@ -1402,8 +1586,8 @@ def plan_route(from_lat: float, from_lon: float, to_lat: float, to_lon: float):
 
 
 @app.get("/api/v1/cidadao/poi/search")
-def poi_search(q: str = "", tipo: str = ""):
-    """Busca local (instantânea) nos ~9.000 POIs pré-carregados do OpenStreetMap."""
+async def poi_search(q: str = "", tipo: str = ""):
+    """Busca em 25k+ POIs do DF (cache OSM) com fallback ao vivo para nomes específicos."""
     q_clean = _normalize(q.strip())
     if len(q_clean) < 2:
         return []
@@ -1416,8 +1600,9 @@ def poi_search(q: str = "", tipo: str = ""):
     if tipo:
         target_types = {tipo}
 
+    # 1. Busca no cache local (instantânea)
     results: list[dict] = []
-    for poi in _ALL_POIS:
+    for poi in _ALL_POIS + _POIS_MANUAIS:
         matched = False
         if target_types and poi["type"] in target_types:
             matched = True
@@ -1426,7 +1611,16 @@ def poi_search(q: str = "", tipo: str = ""):
         if matched:
             results.append({k: v for k, v in poi.items() if k != "name_lower"})
 
-    return results[:120]
+    # 2. Fallback ao vivo no Overpass quando cache retorna poucos resultados
+    #    (útil para estabelecimentos locais pequenos)
+    if len(results) < 5 and len(q_clean) >= 3 and not target_types:
+        live = await _overpass_live_search(q_clean)
+        seen_ids = {r["id"] for r in results}
+        for p in live:
+            if p["id"] not in seen_ids:
+                results.append(p)
+
+    return results[:150]
 
 
 @app.get("/api/v1/cidadao/poi/categories")
