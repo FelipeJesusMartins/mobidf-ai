@@ -820,10 +820,39 @@ def all_stops_map():
 
 @app.get("/api/v1/cidadao/metro/lines")
 def metro_lines_endpoint():
-    """Mock retorna [] — frontend usa fallback hardcoded.
-    Em modo real (real_server.py) retorna geometria WFS do GeoServer SEMOB.
-    """
-    return []
+    """Gera as polylines de cada linha a partir das estações ordenadas."""
+    # Ordem real das estações no corredor principal (shared) + ramais
+    ORDER_SHARED = [
+        "MTR-T-NORTE","MTR-115-N","MTR-113-N","MTR-111-N","MTR-109-N",
+        "MTR-107-N","MTR-105-N","MTR-103-N","MTR-C-NORTE","MTR-CENTRAL",
+        "MTR-GALERIA","MTR-C-SUL","MTR-ASA-SUL","MTR-102-S","MTR-104-S",
+        "MTR-106-S","MTR-108-S","MTR-110-S","MTR-112-S","MTR-114-S",
+        "MTR-116-S","MTR-T-ASA-SUL","MTR-SHOPPING","MTR-GUARA",
+        "MTR-ARNIQ","MTR-CONCESS","MTR-EST-PARQ","MTR-AG-CLARAS",
+        "MTR-ONYAMA","MTR-PRACA-REL","MTR-CENTRO-MET",
+    ]
+    ORDER_CEI = [
+        "MTR-CENTRO-MET","MTR-GUARIROBA","MTR-CEI-SUL",
+        "MTR-CEI-CENTRO","MTR-CEI-NORTE",
+    ]
+    ORDER_SAM = [
+        "MTR-CENTRO-MET","MTR-TAG-SUL","MTR-FURNAS",
+        "MTR-SAMBA-SUL","MTR-SAMAMBAIA",
+    ]
+
+    station_map = {s["stop_id"]: s for s in METRO_STATIONS}
+
+    def coords(order):
+        return [
+            [station_map[sid]["stop_lat"], station_map[sid]["stop_lon"]]
+            for sid in order if sid in station_map
+        ]
+
+    return [
+        {"linha": "ceilandia,samambaia", "cor": "#22c55e", "coords": coords(ORDER_SHARED)},
+        {"linha": "ceilandia",           "cor": "#22c55e", "coords": coords(ORDER_CEI)},
+        {"linha": "samambaia",           "cor": "#f97316", "coords": coords(ORDER_SAM)},
+    ]
 
 @app.get("/api/v1/cidadao/stops/search")
 def search_stops(q: str = "", limit: int = 50):
