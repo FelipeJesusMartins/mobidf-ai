@@ -132,7 +132,23 @@ _KW_TO_TYPES: dict[str, list[str]] = {
     "embaixada":["embaixada"],"consulado":["embaixada"],
 }
 
-# In-memory store de todos os POIs do DF
+# ── Paradas WFS (carregadas do stops_data.json) ───────────────────────────────
+_WFS_STOPS: list[dict] = []  # paradas reais do SEMOB
+
+def _load_wfs_stops() -> None:
+    global _WFS_STOPS
+    import os, json as _json
+    path = os.path.join(os.path.dirname(__file__), "stops_data.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            _WFS_STOPS = _json.load(f)
+        print(f"[STOPS] {len(_WFS_STOPS):,} paradas carregadas do stops_data.json")
+    except FileNotFoundError:
+        print("[STOPS] stops_data.json não encontrado — usando mock padrão")
+    except Exception as e:
+        print(f"[STOPS] Erro ao carregar stops_data.json: {e}")
+
+# ── In-memory store de todos os POIs do DF ────────────────────────────────────
 _ALL_POIS: list[dict] = []
 _pois_loaded = False
 
@@ -220,6 +236,7 @@ async def _load_pois() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _load_wfs_stops()
     asyncio.create_task(_load_pois())
     yield
 
@@ -816,9 +833,14 @@ def metro_stations_endpoint():
 @app.get("/api/v1/cidadao/stops/all-map")
 def all_stops_map():
     """Retorna TODAS as paradas de ônibus + estações de metrô para exibição no mapa."""
-    bus   = [{"type": "bus", **{k: v for k, v in s.items() if k not in ("type",)}} for s in STOPS]
-    metro = list(METRO_STATIONS)
-    return bus + metro
+    # Usa paradas WFS reais se disponíveis, senão fallback para mock
+    bus_source = _WFS_STOPS if _WFS_STOPS else STOPS
+    bus = [
+        {"type": "bus", "stop_id": s["stop_id"], "stop_name": s["stop_name"],
+         "stop_lat": s["stop_lat"], "stop_lon": s["stop_lon"]}
+        for s in bus_source
+    ]
+    return bus + list(METRO_STATIONS)
 
 @app.get("/api/v1/cidadao/metro/lines")
 def metro_lines_endpoint():
@@ -865,8 +887,9 @@ def search_stops(q: str = "", limit: int = 50):
     if not q.strip():
         return []
     q_norm = _normalize(q)
+    bus_source = _WFS_STOPS if _WFS_STOPS else STOPS
     scored = []
-    for s in list(STOPS) + list(METRO_STATIONS):
+    for s in bus_source + list(METRO_STATIONS):
         name_norm = _normalize(s["stop_name"])
         if q_norm not in name_norm:
             continue
@@ -875,7 +898,8 @@ def search_stops(q: str = "", limit: int = 50):
         else:                              priority = 2
         scored.append((priority, s["stop_name"], s))
     scored.sort(key=lambda x: (x[0], x[1]))
-    return [s for _, _, s in scored][:limit]
+    return [{"type": s.get("type","bus"), **{k: v for k,v in s.items() if k!="type"}}
+            for _, _, s in scored][:limit]
 
 @app.get("/api/v1/cidadao/stops/nearby")
 def stops_nearby(lat: float = -15.7942, lon: float = -47.8825, radius_m: int = 500):
@@ -884,11 +908,14 @@ def stops_nearby(lat: float = -15.7942, lon: float = -47.8825, radius_m: int = 5
         dlat = (s["stop_lat"] - lat) * 111000
         dlon = (s["stop_lon"] - lon) * 111000 * math.cos(math.radians(lat))
         return math.sqrt(dlat**2 + dlon**2)
-    all_stops = list(STOPS) + list(METRO_STATIONS)
-    result = [{"dist_m": round(dist(s)), **{k: v for k, v in s.items()}} for s in all_stops]
+    bus_source = _WFS_STOPS if _WFS_STOPS else STOPS
+    all_stops = bus_source + list(METRO_STATIONS)
+    result = [{"dist_m": round(dist(s)), "type": s.get("type","bus"),
+               **{k: v for k, v in s.items() if k not in ("dist_m","type")}}
+              for s in all_stops]
     within = [r for r in result if r["dist_m"] <= radius_m]
     result_sorted = sorted(result, key=lambda x: x["dist_m"])
-    return (within or result_sorted)[:15]
+    return (within or result_sorted[:5])[:20]
 
 @app.get("/api/v1/cidadao/trips/next")
 def next_trips(origin_stop_id: str = "", dest_stop_id: Optional[str] = None, limit: int = 12):
