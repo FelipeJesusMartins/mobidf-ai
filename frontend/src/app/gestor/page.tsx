@@ -76,6 +76,7 @@ export default function GestorPage() {
   const [diametrals, setDiametrals] = useState<DiametralSuggestion[]>([]);
   const [regioes, setRegioes] = useState<Regiao[]>([]);
   const [tab, setTab] = useState<TabId>("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resolving, setResolving] = useState<string|null>(null);
   const [etlRunning, setEtlRunning] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -128,18 +129,16 @@ export default function GestorPage() {
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:"var(--bg)" }}>
 
-      {/* ── SIDEBAR (desktop only) ── */}
+      {/* ── SIDEBAR DESKTOP ── */}
       <motion.aside
         initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease }}
         style={{ width: 220, flexShrink: 0, display:"flex", flexDirection:"column", padding:"20px 12px", gap: 4, borderRight:"1px solid var(--b1)", background:"var(--s1)" }}
         className="hidden lg:flex">
-
         <div style={{ padding:"4px 8px 20px" }}>
           <Logo variant="full" height={28} />
           <div style={{ fontSize:10, color:"var(--t3)", marginTop:4, paddingLeft:2 }}>SEMOB · DF</div>
         </div>
-
         <div style={{ fontSize:10, fontWeight:700, color:"var(--t3)", textTransform:"uppercase", letterSpacing:"0.1em", padding:"0 8px", marginBottom:4 }}>Painel</div>
         {NAV.map(item => (
           <button key={item.id} onClick={() => setTab(item.id)}
@@ -151,12 +150,86 @@ export default function GestorPage() {
             )}
           </button>
         ))}
-
         <div style={{ marginTop:"auto", paddingTop:16, borderTop:"1px solid var(--b1)", display:"flex", flexDirection:"column", gap:2 }}>
           <Link href="/cidadao" className="nav-item text-xs">📱 App Cidadão</Link>
           <Link href="/" className="nav-item text-xs">← Início</Link>
         </div>
       </motion.aside>
+
+      {/* ── DRAWER MOBILE ── */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setSidebarOpen(false)}
+              style={{ position:"fixed", inset:0, zIndex:90,
+                background:"rgba(0,0,0,0.55)", backdropFilter:"blur(2px)" }}
+            />
+            {/* Drawer */}
+            <motion.aside
+              key="drawer"
+              initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+              transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+              style={{ position:"fixed", top:0, left:0, bottom:0, width:260, zIndex:100,
+                display:"flex", flexDirection:"column", padding:"20px 12px", gap:4,
+                borderRight:"1px solid var(--b1)",
+                background:"var(--s1)", boxShadow:"4px 0 32px rgba(0,0,0,0.4)" }}>
+
+              {/* Header do drawer */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                padding:"4px 8px 20px" }}>
+                <div>
+                  <Logo variant="full" height={28} />
+                  <div style={{ fontSize:10, color:"var(--t3)", marginTop:4 }}>SEMOB · DF</div>
+                </div>
+                <button onClick={() => setSidebarOpen(false)}
+                  style={{ background:"var(--s3)", border:"1px solid var(--b1)",
+                    borderRadius:10, width:32, height:32, display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    color:"var(--t2)", fontSize:16, cursor:"pointer", flexShrink:0 }}>
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ fontSize:10, fontWeight:700, color:"var(--t3)", textTransform:"uppercase",
+                letterSpacing:"0.1em", padding:"0 8px", marginBottom:4 }}>Painel</div>
+
+              {NAV.map(item => (
+                <button key={item.id}
+                  onClick={() => { setTab(item.id); setSidebarOpen(false); }}
+                  className={`nav-item ${tab === item.id ? "active" : ""}`}
+                  style={{ fontSize:14, padding:"10px 12px" }}>
+                  <span style={{ fontSize:17, width:24, textAlign:"center" }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                  {item.id === "overlaps" && activeOvs.length > 0 && (
+                    <span className="badge-coral ml-auto" style={{ padding:"2px 7px", fontSize:11 }}>
+                      {activeOvs.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+
+              <div style={{ marginTop:"auto", paddingTop:16, borderTop:"1px solid var(--b1)",
+                display:"flex", flexDirection:"column", gap:4 }}>
+                <Link href="/cidadao" className="nav-item"
+                  style={{ fontSize:13 }}
+                  onClick={() => setSidebarOpen(false)}>
+                  📱 App Cidadão
+                </Link>
+                <Link href="/" className="nav-item"
+                  style={{ fontSize:13 }}
+                  onClick={() => setSidebarOpen(false)}>
+                  ← Início
+                </Link>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── MAIN ── */}
       <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
@@ -164,13 +237,20 @@ export default function GestorPage() {
         {/* Top bar */}
         <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding: m ? "10px 14px" : "14px 24px",
-          borderBottom:"1px solid var(--b1)", background:"var(--s1)", flexShrink:0, gap:8 }}>
-          {/* Mobile: logo + title */}
+          borderBottom:"1px solid var(--b1)", background:"var(--s1)", flexShrink:0, gap:10 }}>
+
+          {/* Hamburger (mobile only) */}
           {m && (
-            <Link href="/" style={{ textDecoration:"none", flexShrink:0 }}>
-              <Logo variant="mark" height={26} />
-            </Link>
+            <button onClick={() => setSidebarOpen(true)}
+              style={{ background:"var(--s3)", border:"1px solid var(--b1)", borderRadius:10,
+                width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
+                cursor:"pointer", flexShrink:0, gap:0, flexDirection:"column", padding:0 }}>
+              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2, marginBottom:3 }} />
+              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2, marginBottom:3 }} />
+              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2 }} />
+            </button>
           )}
+
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize: m ? 13 : 16, fontWeight:800, color:"var(--t1)",
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
@@ -181,15 +261,16 @@ export default function GestorPage() {
               <span style={{ fontSize:10, color:"var(--t3)" }}>Ao vivo · 30s</span>
             </div>
           </div>
+
           <button onClick={runEtl} disabled={etlRunning} className="btn-ghost"
-            style={{ fontSize: m ? 10 : 11, flexShrink:0, padding: m ? "6px 10px" : undefined }}>
+            style={{ fontSize: m ? 10 : 11, flexShrink:0 }}>
             {etlRunning ? "⟳" : "▶ ETL"}
           </button>
         </header>
 
-        {/* Content — with bottom padding on mobile for bottom nav */}
+        {/* Content */}
         <div style={{ flex:1, overflowX:"hidden", overflowY:"auto",
-          padding: m ? "12px 12px 80px" : "24px" }}>
+          padding: m ? "12px 12px 24px" : "24px" }}>
 
           {loading && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:300 }}>
@@ -583,41 +664,6 @@ export default function GestorPage() {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* ── BOTTOM NAV (mobile only) ── */}
-      {m && (
-        <nav style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:50,
-          background:"rgba(10,8,30,0.95)", backdropFilter:"blur(16px)",
-          borderTop:"1px solid rgba(255,255,255,0.08)",
-          display:"flex", padding:"4px 0 6px" }}>
-          {NAV.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)}
-              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
-                gap:2, padding:"6px 2px", border:"none", cursor:"pointer",
-                background: "transparent",
-                color: tab === n.id ? "#c4b5fd" : "rgba(255,255,255,0.3)",
-                transition:"all 0.15s", position:"relative" }}>
-              {n.id === "overlaps" && activeOvs.length > 0 && (
-                <span style={{ position:"absolute", top:4, right:"calc(50% - 14px)",
-                  width:14, height:14, borderRadius:"50%", background:"#f43f5e",
-                  fontSize:8, fontWeight:900, color:"#fff",
-                  display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  {activeOvs.length}
-                </span>
-              )}
-              <span style={{ fontSize:16 }}>{n.icon}</span>
-              <span style={{ fontSize:8, fontWeight:700, letterSpacing:"0.03em",
-                textTransform:"uppercase",
-                color: tab === n.id ? "#c4b5fd" : "rgba(255,255,255,0.3)" }}>
-                {n.id === "overview" ? "Painel" :
-                 n.id === "overlaps" ? "Sobrepõe" :
-                 n.id === "fleet" ? "Score" :
-                 n.id === "diametral" ? "Diametral" : "Terminal"}
-              </span>
-            </button>
-          ))}
-        </nav>
-      )}
 
       {/* ── MODAL CRIAR LINHA DIAMETRAL ── */}
       <AnimatePresence>
