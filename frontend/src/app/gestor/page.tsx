@@ -128,14 +128,13 @@ export default function GestorPage() {
   return (
     <div style={{ display:"flex", minHeight:"100vh", background:"var(--bg)" }}>
 
-      {/* ── SIDEBAR ── */}
+      {/* ── SIDEBAR (desktop only) ── */}
       <motion.aside
         initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease }}
         style={{ width: 220, flexShrink: 0, display:"flex", flexDirection:"column", padding:"20px 12px", gap: 4, borderRight:"1px solid var(--b1)", background:"var(--s1)" }}
         className="hidden lg:flex">
 
-        {/* Logo */}
         <div style={{ padding:"4px 8px 20px" }}>
           <Logo variant="full" height={28} />
           <div style={{ fontSize:10, color:"var(--t3)", marginTop:4, paddingLeft:2 }}>SEMOB · DF</div>
@@ -164,39 +163,33 @@ export default function GestorPage() {
 
         {/* Top bar */}
         <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding: m ? "12px 14px" : "14px 24px",
-          borderBottom:"1px solid var(--b1)", background:"var(--s1)", flexShrink:0, gap:10 }}>
+          padding: m ? "10px 14px" : "14px 24px",
+          borderBottom:"1px solid var(--b1)", background:"var(--s1)", flexShrink:0, gap:8 }}>
+          {/* Mobile: logo + title */}
+          {m && (
+            <Link href="/" style={{ textDecoration:"none", flexShrink:0 }}>
+              <Logo variant="icon" height={26} />
+            </Link>
+          )}
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize: m ? 14 : 16, fontWeight:800, color:"var(--t1)",
+            <div style={{ fontSize: m ? 13 : 16, fontWeight:800, color:"var(--t1)",
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
               {NAV.find(n => n.id === tab)?.label}
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:1 }}>
               <span className="live" />
-              <span style={{ fontSize:11, color:"var(--t3)" }}>Ao vivo · 30s</span>
+              <span style={{ fontSize:10, color:"var(--t3)" }}>Ao vivo · 30s</span>
             </div>
           </div>
           <button onClick={runEtl} disabled={etlRunning} className="btn-ghost"
-            style={{ fontSize:11, flexShrink:0 }}>
-            {etlRunning ? "⟳ ETL..." : "▶ ETL"}
+            style={{ fontSize: m ? 10 : 11, flexShrink:0, padding: m ? "6px 10px" : undefined }}>
+            {etlRunning ? "⟳" : "▶ ETL"}
           </button>
         </header>
 
-        {/* Mobile tab strip */}
-        <div className="lg:hidden" style={{ display:"flex", overflowX:"auto", gap:6, padding:"8px 12px", borderBottom:"1px solid var(--b1)", background:"var(--s1)" }}>
-          {NAV.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)}
-              style={{ flexShrink:0, padding:"6px 12px", borderRadius:10, fontSize:11, fontWeight:600, transition:"all 0.15s",
-                background: tab === n.id ? "rgba(139,92,246,0.2)" : "var(--s3)",
-                color: tab === n.id ? "#c4b5fd" : "var(--t3)",
-                border: tab === n.id ? "1px solid rgba(139,92,246,0.3)" : "1px solid var(--b1)" }}>
-              {n.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div style={{ flex:1, overflow:"auto", padding: m ? "14px 12px" : "24px" }}>
+        {/* Content — with bottom padding on mobile for bottom nav */}
+        <div style={{ flex:1, overflowX:"hidden", overflowY:"auto",
+          padding: m ? "12px 12px 80px" : "24px" }}>
 
           {loading && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:300 }}>
@@ -406,21 +399,20 @@ export default function GestorPage() {
                     {activeOvs.map((o, i) => (
                       <motion.div key={o.id}
                         initial={{ opacity:0, x:12 }} animate={{ opacity:1, x:0 }} transition={{ delay: i*0.05 }}
-                        style={{ display:"flex", flexDirection: m ? "column" : "row", alignItems: m ? "flex-start" : "center",
-                          gap: m ? 10 : 16, padding: m ? "14px 16px" : "16px 24px", borderBottom:"1px solid var(--b1)" }}>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:6 }}>
-                            <span style={{ fontSize: m ? 13 : 14, fontWeight:700, color:"var(--t1)" }}>{o.nome_a} ↔ {o.nome_b}</span>
-                            <span className="badge-coral">{o.overlap_pct?.toFixed(0)}% overlap</span>
-                            <span className="badge-gold">{o.overlap_km?.toFixed(1)} km</span>
-                          </div>
-                          <div style={{ fontSize:12, color:"var(--t3)" }}>
-                            Economia: <span style={{ color:"var(--jade)", fontWeight:700 }}>{fmt(o.economia_estimada_mensal)}/mês</span>
-                          </div>
+                        style={{ display:"flex", flexDirection:"column",
+                          gap:10, padding: m ? "14px 12px" : "16px 24px", borderBottom:"1px solid var(--b1)" }}>
+                        <div style={{ display:"flex", alignItems:"flex-start", gap:8, flexWrap:"wrap" }}>
+                          <span className="badge-coral" style={{ flexShrink:0 }}>{o.overlap_pct?.toFixed(0)}%</span>
+                          <span className="badge-gold" style={{ flexShrink:0 }}>{o.overlap_km?.toFixed(1)} km</span>
+                          <span style={{ fontSize:12, color:"var(--jade)", fontWeight:700, flexShrink:0 }}>{fmt(o.economia_estimada_mensal)}/mês</span>
                         </div>
+                        <div style={{ fontSize:13, fontWeight:700, color:"var(--t1)", lineHeight:1.4, wordBreak:"break-word" }}>
+                          {o.nome_a}
+                        </div>
+                        <div style={{ fontSize:11, color:"var(--t3)" }}>↔ {o.nome_b}</div>
                         <button onClick={() => resolve(o.id)} disabled={resolving === o.id} className="btn-danger"
-                          style={{ fontSize:12, flexShrink:0, width: m ? "100%" : "auto" }}>
-                          {resolving === o.id ? "..." : "Cortar linha"}
+                          style={{ fontSize:12, width:"100%", padding:"10px 0" }}>
+                          {resolving === o.id ? "Cortando…" : "Cortar linha"}
                         </button>
                       </motion.div>
                     ))}
@@ -591,6 +583,41 @@ export default function GestorPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* ── BOTTOM NAV (mobile only) ── */}
+      {m && (
+        <nav style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:50,
+          background:"rgba(10,8,30,0.95)", backdropFilter:"blur(16px)",
+          borderTop:"1px solid rgba(255,255,255,0.08)",
+          display:"flex", padding:"4px 0 6px" }}>
+          {NAV.map(n => (
+            <button key={n.id} onClick={() => setTab(n.id)}
+              style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
+                gap:2, padding:"6px 2px", border:"none", cursor:"pointer",
+                background: "transparent",
+                color: tab === n.id ? "#c4b5fd" : "rgba(255,255,255,0.3)",
+                transition:"all 0.15s", position:"relative" }}>
+              {n.id === "overlaps" && activeOvs.length > 0 && (
+                <span style={{ position:"absolute", top:4, right:"calc(50% - 14px)",
+                  width:14, height:14, borderRadius:"50%", background:"#f43f5e",
+                  fontSize:8, fontWeight:900, color:"#fff",
+                  display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  {activeOvs.length}
+                </span>
+              )}
+              <span style={{ fontSize:16 }}>{n.icon}</span>
+              <span style={{ fontSize:8, fontWeight:700, letterSpacing:"0.03em",
+                textTransform:"uppercase",
+                color: tab === n.id ? "#c4b5fd" : "rgba(255,255,255,0.3)" }}>
+                {n.id === "overview" ? "Painel" :
+                 n.id === "overlaps" ? "Sobrepõe" :
+                 n.id === "fleet" ? "Score" :
+                 n.id === "diametral" ? "Diametral" : "Terminal"}
+              </span>
+            </button>
+          ))}
+        </nav>
+      )}
 
       {/* ── MODAL CRIAR LINHA DIAMETRAL ── */}
       <AnimatePresence>
