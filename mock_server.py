@@ -6,11 +6,224 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-import hashlib, uuid, random, unicodedata, math as _math, time
+from contextlib import asynccontextmanager
+import hashlib, uuid, random, unicodedata, math as _math, time, asyncio
 from datetime import date, datetime
 import httpx as _httpx
 
-app = FastAPI(title="MobiDF AI (Mock)", version="1.0.0-demo")
+# ── POI: mapeamento OSM tag → categoria display ────────────────────────────────
+_OSM_TO_CAT: dict[str, str] = {
+    # Alimentação
+    "restaurant":"restaurante","food_court":"restaurante","fast_food":"lanchonete",
+    "cafe":"cafe","bar":"bar","pub":"bar","biergarten":"bar","ice_cream":"sorvete",
+    "confectionery":"doces","deli":"delicatessen","bakery":"padaria","butcher":"acougue",
+    "greengrocer":"hortifruti","alcohol":"bebidas","beverages":"bebidas",
+    # Comércio alimentar
+    "supermarket":"supermercado","convenience":"mercadinho","marketplace":"feira",
+    "market":"feira","farm":"feira",
+    # Saúde
+    "hospital":"hospital","clinic":"ubs","health_centre":"ubs","doctors":"ubs",
+    "pharmacy":"farmacia","dentist":"dentista","veterinary":"veterinario",
+    "optician":"otica",
+    # Educação
+    "school":"escola","kindergarten":"creche","childcare":"creche",
+    "university":"universidade","college":"universidade",
+    # Serviços financeiros
+    "bank":"banco","atm":"caixa_eletronico","bureau_de_change":"cambio",
+    # Governo / segurança
+    "police":"delegacia","fire_station":"bombeiros","post_office":"correio",
+    "courthouse":"tribunal","townhall":"orgao_publico","government":"orgao_publico",
+    "embassy":"embaixada","library":"biblioteca",
+    # Transporte
+    "bus_station":"rodoviaria","aerodrome":"aeroporto","ferry_terminal":"balsa",
+    "fuel":"posto","car_wash":"lava_jato","car_repair":"mecanica",
+    "car":"concessionaria","car_parts":"autopecas","bicycle":"bicicletaria",
+    # Lazer / esportes
+    "park":"parque","garden":"parque","nature_reserve":"parque",
+    "fitness_centre":"academia","gym":"academia","sports_centre":"esportes",
+    "stadium":"estadio","swimming_pool":"piscina","playground":"playground",
+    "leisure_centre":"lazer",
+    # Cultura / entretenimento
+    "theatre":"teatro","cinema":"cinema","museum":"museu","gallery":"galeria",
+    "attraction":"atracoes","viewpoint":"mirador","arts_centre":"cultura",
+    "nightclub":"balada","casino":"cassino",
+    # Hospedagem
+    "hotel":"hotel","hostel":"hotel","motel":"hotel","guest_house":"hotel",
+    # Saúde / bem-estar
+    "beauty":"salao","hairdresser":"barbearia","massage":"spa","spa":"spa",
+    "tattoo":"tatuagem",
+    # Lojas
+    "mall":"shopping","clothes":"roupas","shoes":"calcados",
+    "electronics":"eletronicos","mobile_phone":"celulares","computer":"informatica",
+    "hardware":"ferragens","furniture":"moveis","sports":"esportes_loja",
+    "florist":"floricultura","pet":"petshop","books":"livraria",
+    "jewelry":"joalheria","gift":"presentes","toys":"brinquedos",
+    "stationery":"papelaria","copyshop":"papelaria","photo":"fotografo",
+    "musical_instrument":"musica","outdoor":"esportes_loja",
+    "laundry":"lavanderia","dry_cleaning":"lavanderia",
+    "travel_agency":"agencia_viagem","ticket":"ingressos",
+    # Religião
+    "place_of_worship":"igrejas",
+    # Outros
+    "parking":"estacionamento","yes":"comercio","charging_station":"recarga_ev",
+}
+
+# Keyword (normalizado) → lista de tipos para filtrar
+_KW_TO_TYPES: dict[str, list[str]] = {
+    "feira":["feira"],"mercado":["feira","supermercado"],"mercadao":["feira"],
+    "hospital":["hospital"],"ubs":["ubs"],"posto saude":["ubs"],"clinica":["ubs"],
+    "saude":["hospital","ubs","dentista","farmacia"],
+    "farmacia":["farmacia"],"remedio":["farmacia"],
+    "escola":["escola","creche"],"colegio":["escola"],"creche":["creche"],
+    "universidade":["universidade"],"faculdade":["universidade"],"unb":["universidade"],
+    "shopping":["shopping"],"mall":["shopping"],
+    "parque":["parque"],"jardim":["parque"],"natureza":["parque"],
+    "academia":["academia"],"gym":["academia"],"ginasio":["academia"],
+    "banco":["banco"],"agencia":["banco"],"caixa":["banco","caixa_eletronico"],
+    "restaurante":["restaurante","lanchonete"],"comida":["restaurante","lanchonete","cafe"],
+    "lanchonete":["lanchonete"],"fast food":["lanchonete"],"fastfood":["lanchonete"],
+    "padaria":["padaria"],"cafe":["cafe"],"cafeteria":["cafe"],
+    "bar":["bar"],"pub":["bar"],"boteco":["bar"],
+    "supermercado":["supermercado","mercadinho"],"mercadinho":["mercadinho"],
+    "posto":["posto"],"gasolina":["posto"],"combustivel":["posto"],
+    "delegacia":["delegacia"],"policia":["delegacia"],
+    "bombeiro":["bombeiros"],"defesa civil":["bombeiros"],
+    "correio":["correio"],"sedex":["correio"],
+    "biblioteca":["biblioteca"],"livro":["biblioteca","livraria"],
+    "livraria":["livraria"],
+    "museu":["museu"],"galeria":["galeria","museu"],
+    "teatro":["teatro"],"cinema":["cinema"],"filme":["cinema"],
+    "hotel":["hotel"],"pousada":["hotel"],"hostel":["hotel"],
+    "rodoviaria":["rodoviaria"],"onibus":["rodoviaria"],
+    "aeroporto":["aeroporto"],"voo":["aeroporto"],
+    "igrejas":["igrejas"],"igreja":["igrejas"],"templo":["igrejas"],
+    "dentista":["dentista"],"odontologo":["dentista"],
+    "veterinario":["veterinario"],"pet":["petshop","veterinario"],
+    "petshop":["petshop"],"animal":["petshop","veterinario"],
+    "otica":["otica"],"oculos":["otica"],
+    "mecanica":["mecanica"],"mecanico":["mecanica"],"oficina":["mecanica"],
+    "lavajato":["lava_jato"],"lavar carro":["lava_jato"],
+    "autoparts":["autopecas"],"pecas":["autopecas"],
+    "barbearia":["barbearia"],"barbeiro":["barbearia"],"cabeleireiro":["barbearia","salao"],
+    "salao":["salao"],"beleza":["salao","barbearia","spa"],
+    "spa":["spa"],"massagem":["spa"],
+    "roupas":["roupas"],"moda":["roupas","calcados"],"calcados":["calcados"],
+    "informatica":["informatica","eletronicos"],"computador":["informatica"],
+    "celular":["celulares"],"smartphone":["celulares"],
+    "eletronico":["eletronicos"],"eletrodomestico":["eletronicos"],
+    "ferramenta":["ferragens"],"construcao":["ferragens"],
+    "moveis":["moveis"],"decoracao":["moveis"],
+    "esportes":["esportes","academia","esportes_loja"],"esporte":["esportes","academia"],
+    "estadio":["estadio"],"arena":["estadio"],
+    "piscina":["piscina"],"natacao":["piscina"],
+    "flores":["floricultura"],"floricultura":["floricultura"],
+    "lavanderia":["lavanderia"],"roupa suja":["lavanderia"],
+    "brinquedo":["brinquedos"],"crianca":["brinquedos","creche","playground"],
+    "doce":["doces","sorvete"],"sorvete":["sorvete"],
+    "acougue":["acougue"],"carne":["acougue"],
+    "hortifruti":["hortifruti"],"verdura":["hortifruti"],"fruta":["hortifruti"],
+    "joalheria":["joalheria"],"joia":["joalheria"],
+    "tatuagem":["tatuagem"],"piercing":["tatuagem"],
+    "turismo":["atracoes","museu","mirador"],"turista":["atracoes","hotel"],
+    "camping":["parque"],"trilha":["parque"],
+    "balada":["balada"],"night":["balada"],"boate":["balada"],
+    "recarga":["recarga_ev"],"eletrico":["recarga_ev"],
+    "orgao publico":["orgao_publico"],"governo":["orgao_publico"],
+    "embaixada":["embaixada"],"consulado":["embaixada"],
+}
+
+# In-memory store de todos os POIs do DF
+_ALL_POIS: list[dict] = []
+_pois_loaded = False
+
+async def _load_pois() -> None:
+    global _ALL_POIS, _pois_loaded
+    BBOX = "-16.1,-48.4,-15.4,-47.3"
+
+    queries = [
+        # 1. Todos os nodes/ways com nome e qualquer tag relevante
+        f"[out:json][timeout:60];(\n"
+        f'  node["name"]["amenity"]({BBOX});\n'
+        f'  node["name"]["shop"]({BBOX});\n'
+        f'  node["name"]["leisure"]({BBOX});\n'
+        f'  node["name"]["tourism"]({BBOX});\n'
+        f'  node["name"]["healthcare"]({BBOX});\n'
+        f'  node["name"]["office"]({BBOX});\n'
+        f'  node["name"]["aeroway"]({BBOX});\n'
+        f'  way["name"]["amenity"]({BBOX});\n'
+        f'  way["name"]["shop"]({BBOX});\n'
+        f'  way["name"]["leisure"]({BBOX});\n'
+        f'  way["name"]["tourism"]({BBOX});\n'
+        f'  way["name"]["healthcare"]({BBOX});\n'
+        f');\nout center 8000;',
+        # 2. Redes/marcas (McDonald's, Carrefour, Itaú…) sem nome explícito
+        f"[out:json][timeout:30];(\n"
+        f'  node["brand"]({BBOX});\n'
+        f'  node["operator"]["amenity"]({BBOX});\n'
+        f');\nout body 2000;',
+    ]
+
+    all_elements: list = []
+    try:
+        async with _httpx.AsyncClient(timeout=70) as client:
+            for q in queries:
+                try:
+                    r = await client.post(
+                        "https://overpass-api.de/api/interpreter",
+                        data={"data": q},
+                        headers={"Accept": "application/json", "User-Agent": "MobiDF-AI/1.0"},
+                    )
+                    all_elements.extend(r.json().get("elements", []))
+                except Exception as e:
+                    print(f"[POI] query error: {e}")
+    except Exception as e:
+        print(f"[POI] client error: {e}")
+
+    seen: set[str] = set()
+    pois: list[dict] = []
+    for el in all_elements:
+        tags = el.get("tags", {})
+        name = (tags.get("name") or tags.get("brand") or "").strip()
+        if not name: continue
+        key = f"{name}_{el['id']}"
+        if key in seen: continue
+        seen.add(key)
+
+        lat = el.get("lat") or el.get("center", {}).get("lat")
+        lon = el.get("lon") or el.get("center", {}).get("lon")
+        if not lat or not lon: continue
+
+        cat = "local"
+        for osm_key in ("amenity", "shop", "leisure", "tourism", "healthcare", "aeroway", "office"):
+            val = tags.get(osm_key, "")
+            if val in _OSM_TO_CAT:
+                cat = _OSM_TO_CAT[val]; break
+            elif val and cat == "local":
+                cat = "comercio"
+
+        pois.append({
+            "id":         str(el["id"]),
+            "name":       name,
+            "name_lower": _normalize(name),
+            "lat":        lat,
+            "lon":        lon,
+            "type":       cat,
+            "address":    tags.get("addr:street", tags.get("addr:suburb", "")),
+            "phone":      tags.get("phone", tags.get("contact:phone", "")),
+            "opening":    tags.get("opening_hours", ""),
+        })
+
+    _ALL_POIS = pois
+    _pois_loaded = True
+    print(f"[POI] {len(pois):,} pontos de interesse carregados do OpenStreetMap")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(_load_pois())
+    yield
+
+app = FastAPI(title="MobiDF AI (Mock)", version="1.0.0-demo", lifespan=lifespan)
 
 def _normalize(text: str) -> str:
     """Remove acentos e normaliza para minúsculas — 'Ceilândia' → 'ceilandia'."""
@@ -956,117 +1169,45 @@ def plan_route(from_lat: float, from_lon: float, to_lat: float, to_lon: float):
     }
 
 
-# ── POI — Pontos de Interesse via Overpass (OpenStreetMap) ────────────────────
-_POI_TAGS: dict[str, list[tuple[str,str]]] = {
-    "feira":       [("amenity","marketplace"), ("shop","market")],
-    "hospital":    [("amenity","hospital")],
-    "ubs":         [("amenity","clinic"), ("amenity","health_centre"), ("healthcare","centre")],
-    "escola":      [("amenity","school")],
-    "universidade":[("amenity","university"), ("amenity","college")],
-    "shopping":    [("shop","mall")],
-    "parque":      [("leisure","park")],
-    "farmacia":    [("amenity","pharmacy")],
-    "banco":       [("amenity","bank")],
-    "restaurante": [("amenity","restaurant")],
-    "posto":       [("amenity","fuel")],
-    "supermercado":[("shop","supermarket")],
-    "padaria":     [("shop","bakery")],
-    "academia":    [("leisure","fitness_centre")],
-    "biblioteca":  [("amenity","library")],
-    "museu":       [("tourism","museum")],
-    "teatro":      [("amenity","theatre")],
-    "cinema":      [("amenity","cinema")],
-    "delegacia":   [("amenity","police")],
-    "correio":     [("amenity","post_office")],
-    "rodoviaria":  [("amenity","bus_station")],
-    "aeroporto":   [("aeroway","aerodrome")],
-    "hotel":       [("tourism","hotel"), ("tourism","hostel")],
-    "igrejas":     [("amenity","place_of_worship")],
-}
-
-# Cache simples: {query_key: (timestamp, result)}
-_poi_cache: dict[str, tuple[float, list]] = {}
-_POI_CACHE_TTL = 3600  # 1 hora
-
-def _poi_type(tags: dict) -> str:
-    for cat, cat_tags in _POI_TAGS.items():
-        for k, v in cat_tags:
-            if tags.get(k) == v:
-                return cat
-    return "local"
-
 @app.get("/api/v1/cidadao/poi/search")
-async def poi_search(q: str = ""):
+def poi_search(q: str = "", tipo: str = ""):
+    """Busca local (instantânea) nos ~9.000 POIs pré-carregados do OpenStreetMap."""
     q_clean = _normalize(q.strip())
     if len(q_clean) < 2:
         return []
 
-    now = time.time()
-    if q_clean in _poi_cache:
-        ts, cached = _poi_cache[q_clean]
-        if now - ts < _POI_CACHE_TTL:
-            return cached
+    # Resolve keywords → tipos OSM
+    target_types: set[str] = set()
+    for kw, types in _KW_TO_TYPES.items():
+        if q_clean == kw or q_clean in kw or kw in q_clean:
+            target_types.update(types)
+    if tipo:
+        target_types = {tipo}
 
-    # Bounding box do DF
-    BBOX = "-16.1,-48.4,-15.4,-47.3"
+    results: list[dict] = []
+    for poi in _ALL_POIS:
+        matched = False
+        if target_types and poi["type"] in target_types:
+            matched = True
+        elif q_clean in poi["name_lower"]:
+            matched = True
+        if matched:
+            results.append({k: v for k, v in poi.items() if k != "name_lower"})
 
-    # Monta filtros OSM pelo keyword
-    tag_filters: list[tuple[str,str]] = []
-    for kw, kw_tags in _POI_TAGS.items():
-        if q_clean in kw or kw in q_clean:
-            tag_filters.extend(kw_tags)
+    return results[:120]
 
-    if tag_filters:
-        parts = "\n".join(
-            f'  node["{k}"="{v}"]({BBOX});\n  way["{k}"="{v}"]({BBOX});'
-            for k, v in tag_filters
-        )
-        overpass_q = f"[out:json][timeout:12];\n(\n{parts}\n);\nout center 80;"
-    else:
-        # Busca livre por nome
-        q_escaped = q.replace('"', '\\"')
-        overpass_q = (
-            f'[out:json][timeout:12];\n'
-            f'node["name"~"{q_escaped}",i]({BBOX});\n'
-            f'out body 60;'
-        )
 
-    try:
-        async with _httpx.AsyncClient(timeout=14) as client:
-            resp = await client.post(
-                "https://overpass-api.de/api/interpreter",
-                data={"data": overpass_q},
-                headers={"Accept": "application/json", "User-Agent": "MobiDF-AI/1.0"},
-            )
-        elements = resp.json().get("elements", [])
-    except Exception:
-        return []
+@app.get("/api/v1/cidadao/poi/categories")
+def poi_categories():
+    """Lista todas as categorias disponíveis com contagem de POIs."""
+    from collections import Counter
+    counts = Counter(p["type"] for p in _ALL_POIS)
+    return [{"type": t, "count": c} for t, c in counts.most_common()]
 
-    result = []
-    seen_names: set[str] = set()
-    for el in elements:
-        tags = el.get("tags", {})
-        name = tags.get("name", "").strip()
-        if not name or name in seen_names:
-            continue
-        seen_names.add(name)
-        lat = el.get("lat") or el.get("center", {}).get("lat")
-        lon = el.get("lon") or el.get("center", {}).get("lon")
-        if not lat or not lon:
-            continue
-        result.append({
-            "id":       str(el["id"]),
-            "name":     name,
-            "lat":      lat,
-            "lon":      lon,
-            "type":     _poi_type(tags),
-            "address":  tags.get("addr:street", tags.get("addr:suburb", "")),
-            "phone":    tags.get("phone", tags.get("contact:phone", "")),
-            "opening":  tags.get("opening_hours", ""),
-        })
 
-    _poi_cache[q_clean] = (now, result)
-    return result
+@app.get("/api/v1/cidadao/poi/status")
+def poi_status():
+    return {"loaded": _pois_loaded, "total": len(_ALL_POIS)}
 
 
 @app.get("/")

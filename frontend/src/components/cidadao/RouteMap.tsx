@@ -37,31 +37,43 @@ const ORIGIN_ICON = makePin("#10b981", "A");
 const DEST_ICON   = makePin("#f43f5e", "B");
 
 const POI_STYLE: Record<string, { emoji: string; color: string }> = {
-  feira:        { emoji: "🛒", color: "#f59e0b" },
-  hospital:     { emoji: "🏥", color: "#f43f5e" },
-  ubs:          { emoji: "🏥", color: "#fb923c" },
-  escola:       { emoji: "🏫", color: "#6366f1" },
-  universidade: { emoji: "🎓", color: "#7c3aed" },
-  shopping:     { emoji: "🏬", color: "#a855f7" },
-  parque:       { emoji: "🌳", color: "#22c55e" },
-  farmacia:     { emoji: "💊", color: "#10b981" },
-  banco:        { emoji: "🏦", color: "#3b82f6" },
-  restaurante:  { emoji: "🍽️", color: "#f97316" },
-  posto:        { emoji: "⛽", color: "#64748b" },
-  supermercado: { emoji: "🛒", color: "#eab308" },
-  padaria:      { emoji: "🥖", color: "#b45309" },
-  academia:     { emoji: "💪", color: "#8b5cf6" },
-  biblioteca:   { emoji: "📚", color: "#0ea5e9" },
-  museu:        { emoji: "🏛️", color: "#d97706" },
-  teatro:       { emoji: "🎭", color: "#ec4899" },
-  cinema:       { emoji: "🎬", color: "#8b5cf6" },
-  delegacia:    { emoji: "👮", color: "#1d4ed8" },
-  correio:      { emoji: "📮", color: "#fbbf24" },
-  rodoviaria:   { emoji: "🚌", color: "#7c3aed" },
-  aeroporto:    { emoji: "✈️", color: "#0ea5e9" },
-  hotel:        { emoji: "🏨", color: "#14b8a6" },
-  igrejas:      { emoji: "⛪", color: "#94a3b8" },
-  local:        { emoji: "📍", color: "#94a3b8" },
+  restaurante:"🍽️",lanchonete:"🍔",cafe:"☕",padaria:"🥖",acougue:"🥩",
+  hortifruti:"🥦",sorvete:"🍦",doces:"🍬",bar:"🍺",balada:"🎵",bebidas:"🥤",
+  supermercado:"🛒",mercadinho:"🏪",feira:"🛒",
+  hospital:"🏥",ubs:"🏥",farmacia:"💊",dentista:"🦷",veterinario:"🐾",otica:"👓",
+  escola:"🏫",creche:"🧒",universidade:"🎓",
+  banco:"🏦",caixa_eletronico:"💳",
+  delegacia:"👮",bombeiros:"🚒",correio:"📮",tribunal:"⚖️",orgao_publico:"🏛️",
+  embaixada:"🏳️",biblioteca:"📚",
+  rodoviaria:"🚌",aeroporto:"✈️",posto:"⛽",lava_jato:"🚿",mecanica:"🔧",
+  concessionaria:"🚗",autopecas:"🔩",bicicletaria:"🚲",estacionamento:"🅿️",
+  parque:"🌳",academia:"💪",esportes:"⚽",estadio:"🏟️",piscina:"🏊",playground:"🛝",
+  teatro:"🎭",cinema:"🎬",museu:"🏛️",galeria:"🖼️",atracoes:"🎠",mirador:"🔭",
+  cultura:"🎨",cassino:"🎰",hotel:"🏨",
+  salao:"💇",barbearia:"✂️",spa:"🧖",tatuagem:"🖋️",
+  shopping:"🏬",roupas:"👕",calcados:"👟",eletronicos:"📱",celulares:"📱",
+  informatica:"💻",ferragens:"🔨",moveis:"🛋️",floricultura:"💐",petshop:"🐶",
+  livraria:"📖",joalheria:"💍",presentes:"🎁",brinquedos:"🧸",papelaria:"📝",
+  lavanderia:"👕",agencia_viagem:"🌍",
+  igrejas:"⛪",comercio:"🏪",recarga_ev:"⚡",local:"📍",
+} as unknown as Record<string, { emoji: string; color: string }>;
+
+const POI_COLORS: Record<string, string> = {
+  restaurante:"#f97316",lanchonete:"#fb923c",cafe:"#92400e",padaria:"#b45309",
+  acougue:"#dc2626",hortifruti:"#16a34a",sorvete:"#ec4899",doces:"#e879f9",bar:"#f59e0b",
+  balada:"#a21caf",bebidas:"#0284c7",supermercado:"#eab308",mercadinho:"#ca8a04",
+  feira:"#f59e0b",hospital:"#f43f5e",ubs:"#fb923c",farmacia:"#10b981",
+  dentista:"#06b6d4",veterinario:"#84cc16",otica:"#6366f1",escola:"#6366f1",
+  creche:"#818cf8",universidade:"#7c3aed",banco:"#3b82f6",caixa_eletronico:"#2563eb",
+  delegacia:"#1d4ed8",bombeiros:"#ef4444",correio:"#fbbf24",orgao_publico:"#64748b",
+  biblioteca:"#0ea5e9",rodoviaria:"#7c3aed",aeroporto:"#0ea5e9",posto:"#64748b",
+  lava_jato:"#38bdf8",mecanica:"#78716c",parque:"#22c55e",academia:"#8b5cf6",
+  esportes:"#10b981",estadio:"#0d9488",piscina:"#38bdf8",teatro:"#ec4899",
+  cinema:"#8b5cf6",museu:"#d97706",hotel:"#14b8a6",salao:"#f9a8d4",
+  barbearia:"#94a3b8",spa:"#f0abfc",shopping:"#a855f7",roupas:"#c084fc",
+  calcados:"#818cf8",eletronicos:"#38bdf8",informatica:"#3b82f6",ferragens:"#92400e",
+  moveis:"#78716c",floricultura:"#f472b6",petshop:"#84cc16",livraria:"#6366f1",
+  joalheria:"#fbbf24",igrejas:"#94a3b8",comercio:"#94a3b8",local:"#94a3b8",
 };
 
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number) => void }) {
@@ -125,7 +137,9 @@ export default function RouteMap({
 
       {/* POIs */}
       {pois.map((poi) => {
-        const style = POI_STYLE[poi.type] ?? POI_STYLE.local;
+        const emoji = (POI_STYLE[poi.type] as unknown as string) ?? "📍";
+        const color = POI_COLORS[poi.type] ?? "#94a3b8";
+        const style = { emoji, color };
         const icon  = makePOIIcon(style.emoji, style.color);
         return (
           <Marker key={poi.id} position={[poi.lat, poi.lon]} icon={icon} zIndexOffset={500}>
