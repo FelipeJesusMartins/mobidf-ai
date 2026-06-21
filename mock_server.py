@@ -576,8 +576,6 @@ METRO_STATIONS: list[dict] = [
     _s("MTR-CONCESS",   "Metrô Concessionárias",      -15.8218, -47.9886),
     _s("MTR-EST-PARQ",  "Metrô Estrada Parque",       -15.8196, -48.0005),
     _s("MTR-AG-CLARAS", "Metrô Águas Claras",         -15.8360, -48.0256),
-    _s("MTR-ONYAMA",    "Metrô Onyama",               -15.8278, -48.0393),
-    _s("MTR-PRACA-REL", "Metrô Praça do Relógio",     -15.8192, -48.0583),
     # ── BIFURCAÇÃO ───────────────────────────────────────────────
     _s("MTR-CENTRO-MET","Metrô Centro Metropolitano", -15.8140, -48.0438,
        linha="ceilandia,samambaia", ta="Ceilândia Norte", tb="Samambaia", fp=6, fn=10),
@@ -586,7 +584,11 @@ METRO_STATIONS: list[dict] = [
     _s("MTR-CEI-SUL",   "Metrô Ceilândia Sul",        -15.8357, -48.1028),
     _s("MTR-CEI-CENTRO","Metrô Ceilândia Centro",     -15.8265, -48.1118),
     _s("MTR-CEI-NORTE", "Metrô Ceilândia Norte",      -15.8090, -48.1137),
-    # ── LINHA SAMAMBAIA — ramal sul ───────────────────────────────
+    # ── LINHA SAMAMBAIA — ramal sudoeste ─────────────────────────
+    _s("MTR-PRACA-REL", "Metrô Praça do Relógio",     -15.8192, -48.0583,
+       linha="samambaia", ta="Samambaia", tb="Terminal Asa Norte", fp=8, fn=14),
+    _s("MTR-ONYAMA",    "Metrô Onyama",               -15.8278, -48.0393,
+       linha="samambaia", ta="Samambaia", tb="Terminal Asa Norte", fp=8, fn=14),
     _s("MTR-TAG-SUL",   "Metrô Taguatinga Sul",       -15.8248, -48.0495,
        linha="samambaia", ta="Samambaia", tb="Terminal Asa Norte", fp=8, fn=14),
     _s("MTR-FURNAS",    "Metrô Furnas",               -15.8430, -48.0594,
@@ -822,6 +824,8 @@ def all_stops_map():
 def metro_lines_endpoint():
     """Gera as polylines de cada linha a partir das estações ordenadas."""
     # Ordem real das estações no corredor principal (shared) + ramais
+    # Tronco compartilhado: Asa Norte → Asa Sul → Guará → Taguatinga → Centro Met
+    # Onyama e Praça do Relógio pertencem ao ramal Samambaia (pós-bifurcação)
     ORDER_SHARED = [
         "MTR-T-NORTE","MTR-115-N","MTR-113-N","MTR-111-N","MTR-109-N",
         "MTR-107-N","MTR-105-N","MTR-103-N","MTR-C-NORTE","MTR-CENTRAL",
@@ -829,14 +833,15 @@ def metro_lines_endpoint():
         "MTR-106-S","MTR-108-S","MTR-110-S","MTR-112-S","MTR-114-S",
         "MTR-116-S","MTR-T-ASA-SUL","MTR-SHOPPING","MTR-GUARA",
         "MTR-ARNIQ","MTR-CONCESS","MTR-EST-PARQ","MTR-AG-CLARAS",
-        "MTR-ONYAMA","MTR-PRACA-REL","MTR-CENTRO-MET",
+        "MTR-CENTRO-MET",
     ]
     ORDER_CEI = [
         "MTR-CENTRO-MET","MTR-GUARIROBA","MTR-CEI-SUL",
         "MTR-CEI-CENTRO","MTR-CEI-NORTE",
     ]
+    # Ramal Samambaia: bifurca no Centro Met e vai para sudoeste
     ORDER_SAM = [
-        "MTR-CENTRO-MET","MTR-TAG-SUL","MTR-FURNAS",
+        "MTR-CENTRO-MET","MTR-PRACA-REL","MTR-TAG-SUL","MTR-FURNAS",
         "MTR-SAMBA-SUL","MTR-SAMAMBAIA",
     ]
 

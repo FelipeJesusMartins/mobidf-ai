@@ -19,6 +19,7 @@ import type { Stop, MetroLineSegment } from "@/lib/api";
    Ramal Ceilândia (verde, M1): Centro Met. → Guariroba → Ceilândia Norte
    Ramal Samambaia (laranja, M2): Centro Met. → Taguatinga Sul → Furnas → Samambaia
 ── */
+// Tronco compartilhado: Asa Norte → Asa Sul → Guará → Taguatinga → Centro Met
 const METRO_SPINE: [number, number][] = [
   [-15.7476, -47.8800], // Terminal Asa Norte
   [-15.7553, -47.8852], // 115 Norte
@@ -28,10 +29,10 @@ const METRO_SPINE: [number, number][] = [
   [-15.7824, -47.8908], // 107 Norte
   [-15.7862, -47.8918], // 105 Norte
   [-15.7880, -47.8928], // 103 Norte
-  [-15.7893, -47.8958], // C. Norte
+  [-15.7893, -47.8958], // Cruzeiro Norte
   [-15.7944, -47.8923], // Central
   [-15.7988, -47.8924], // Galeria
-  [-15.8028, -47.8930], // C. Sul / Sarah
+  [-15.8028, -47.8930], // Cruzeiro Sul / Sarah
   [-15.8078, -47.8935], // Asa Sul
   [-15.8122, -47.8940], // 102 Sul
   [-15.8166, -47.8945], // 104 Sul
@@ -48,11 +49,9 @@ const METRO_SPINE: [number, number][] = [
   [-15.8218, -47.9886], // Concessionárias
   [-15.8196, -48.0005], // Estrada Parque
   [-15.8360, -48.0256], // Águas Claras
-  [-15.8278, -48.0393], // Onyama
-  [-15.8192, -48.0583], // Praça do Relógio
   [-15.8140, -48.0438], // Centro Metropolitano (bifurcação)
 ];
-// Ramal Ceilândia (verde M1) — noroeste
+// Ramal Ceilândia (verde M1): bifurca no Centro Met e vai para noroeste
 const METRO_CEILANDIA: [number, number][] = [
   [-15.8140, -48.0438], // Centro Metropolitano
   [-15.8256, -48.0718], // Guariroba
@@ -60,9 +59,10 @@ const METRO_CEILANDIA: [number, number][] = [
   [-15.8265, -48.1118], // Ceilândia Centro
   [-15.8090, -48.1137], // Ceilândia Norte
 ];
-// Ramal Samambaia (laranja M2) — sul
+// Ramal Samambaia (laranja M2): bifurca no Centro Met e vai para sudoeste
 const METRO_SAMAMBAIA: [number, number][] = [
   [-15.8140, -48.0438], // Centro Metropolitano
+  [-15.8192, -48.0583], // Praça do Relógio
   [-15.8248, -48.0495], // Taguatinga Sul
   [-15.8430, -48.0594], // Furnas
   [-15.8548, -48.0726], // Samambaia Sul
