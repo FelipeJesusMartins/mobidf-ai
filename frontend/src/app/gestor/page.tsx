@@ -235,38 +235,48 @@ export default function GestorPage() {
       <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
 
         {/* Top bar */}
-        <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding: m ? "10px 14px" : "14px 24px",
-          borderBottom:"1px solid var(--b1)", background:"var(--s1)", flexShrink:0, gap:10 }}>
-
-          {/* Hamburger (mobile only) */}
-          {m && (
+        {m ? (
+          /* Mobile: só hamburguer + badge ao vivo */
+          <header style={{ display:"flex", alignItems:"center", gap:10,
+            padding:"10px 12px", borderBottom:"1px solid var(--b1)",
+            background:"var(--s1)", flexShrink:0 }}>
             <button onClick={() => setSidebarOpen(true)}
               style={{ background:"var(--s3)", border:"1px solid var(--b1)", borderRadius:10,
-                width:36, height:36, display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer", flexShrink:0, gap:0, flexDirection:"column", padding:0 }}>
-              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2, marginBottom:3 }} />
-              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2, marginBottom:3 }} />
-              <span style={{ display:"block", width:16, height:2, background:"var(--t2)", borderRadius:2 }} />
+                width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center",
+                cursor:"pointer", flexShrink:0, flexDirection:"column", gap:0, padding:0 }}>
+              <span style={{ display:"block", width:18, height:2, background:"var(--t2)", borderRadius:2, marginBottom:4 }} />
+              <span style={{ display:"block", width:18, height:2, background:"var(--t2)", borderRadius:2, marginBottom:4 }} />
+              <span style={{ display:"block", width:18, height:2, background:"var(--t2)", borderRadius:2 }} />
             </button>
-          )}
-
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize: m ? 13 : 16, fontWeight:800, color:"var(--t1)",
+            <div style={{ flex:1, fontSize:14, fontWeight:800, color:"var(--t1)",
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
               {NAV.find(n => n.id === tab)?.label}
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:1 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
               <span className="live" />
-              <span style={{ fontSize:10, color:"var(--t3)" }}>Ao vivo · 30s</span>
+              <span style={{ fontSize:10, color:"var(--t3)" }}>Ao vivo</span>
             </div>
-          </div>
-
-          <button onClick={runEtl} disabled={etlRunning} className="btn-ghost"
-            style={{ fontSize: m ? 10 : 11, flexShrink:0 }}>
-            {etlRunning ? "⟳" : "▶ ETL"}
-          </button>
-        </header>
+          </header>
+        ) : (
+          /* Desktop: header completo */
+          <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+            padding:"14px 24px", borderBottom:"1px solid var(--b1)",
+            background:"var(--s1)", flexShrink:0, gap:10 }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:16, fontWeight:800, color:"var(--t1)" }}>
+                {NAV.find(n => n.id === tab)?.label}
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:1 }}>
+                <span className="live" />
+                <span style={{ fontSize:10, color:"var(--t3)" }}>Ao vivo · 30s</span>
+              </div>
+            </div>
+            <button onClick={runEtl} disabled={etlRunning} className="btn-ghost"
+              style={{ fontSize:11, flexShrink:0 }}>
+              {etlRunning ? "⟳ ETL..." : "▶ ETL"}
+            </button>
+          </header>
+        )}
 
         {/* Content */}
         <div style={{ flex:1, overflowX:"hidden", overflowY:"auto",
@@ -344,7 +354,7 @@ export default function GestorPage() {
                   )}
 
                   {/* KPI grid */}
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:16 }}>
+                  <div style={{ display:"grid", gridTemplateColumns: m ? "1fr 1fr" : "repeat(auto-fit,minmax(200px,1fr))", gap: m ? 10 : 16 }}>
                     {[
                       { label:"Economia Potencial", value: fmt(dash?.overlap.economia_potencial), sub:"em cortes de sobreposição", color:"var(--jade)", cls:"panel-jade" },
                       { label:"Sobreposições Ativas", value: dash?.overlap.ativos ?? 0, sub:`${dash?.overlap.resolvidos ?? 0} já resolvidas`, color:"var(--coral)", cls:"panel-coral" },
@@ -565,8 +575,8 @@ export default function GestorPage() {
               {/* ══════ DIAMETRAL ══════ */}
               {tab === "diametral" && !loading && (
                 <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-                    <div className="panel-volt" style={{ padding:"14px 18px", flex:1, minWidth:260 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                    <div className="panel-volt" style={{ padding:"14px 18px" }}>
                       <p style={{ fontSize:13, color:"var(--t2)", lineHeight:1.6, margin:0 }}>
                         Pares de RAs com alto fluxo pendular e <strong style={{ color:"var(--t1)" }}>sem linha direta</strong> detectados via matriz O/D.
                         Eliminam a baldeação obrigatória na Rodoviária do Plano Piloto.
@@ -574,7 +584,7 @@ export default function GestorPage() {
                     </div>
                     <button
                       className="btn-volt"
-                      style={{ fontSize:12, flexShrink:0 }}
+                      style={{ fontSize:12, width:"100%", padding:"12px 0" }}
                       onClick={() => { setNovaOrigem(""); setNovaDestino(""); setCriarLinha({ origem:"", destino:"" }); }}>
                       + Nova rota diametral
                     </button>
