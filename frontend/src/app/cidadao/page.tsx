@@ -1542,21 +1542,22 @@ export default function CidadaoPage() {
                       display:"flex", alignItems:"center", justifyContent:"center" }}>🌟</div>
                     <div>
                       <div style={{ fontSize:17, fontWeight:900, color:"#fff" }}>Cenário Maria</div>
-                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.45)" }}>Ceilândia → SIA · Impacto real</div>
+                      <div style={{ fontSize:11, color:"rgba(255,255,255,0.45)" }}>Ceilândia → Feira dos Importados do SIA · só ônibus</div>
                     </div>
                   </div>
                   <p style={{ fontSize:13, color:"rgba(255,255,255,0.65)", lineHeight:1.7, margin:0 }}>
-                    Maria, 34 anos, gasta <strong style={{ color:"#fff" }}>4h/dia</strong> em ônibus com 2 baldeações.
-                    A rota diametral Ceilândia→SIA reduziria para <strong style={{ color:"#34d399" }}>3h25</strong>,
+                    Maria, 34 anos, trabalha na Feira dos Importados do SIA. O SIA <strong style={{ color:"#fff" }}>não tem metrô</strong> — só ônibus.
+                    Hoje ela faz <strong style={{ color:"#fb7185" }}>2 baldeações</strong> e gasta <strong style={{ color:"#fff" }}>4h/dia</strong> só no trajeto.
+                    Um ônibus diametral Ceilândia→SIA reduziria para <strong style={{ color:"#34d399" }}>3h25</strong>,
                     devolvendo <strong style={{ color:"#a78bfa" }}>+12,8h/mês</strong> de vida.
                   </p>
                 </div>
 
                 {[
-                  { icon:"⏱", label:"Tempo atual / dia",      value:"~4h",      sub:"2 baldeações na Rodoviária", color:"#fb7185" },
-                  { icon:"⚡", label:"Com rota diametral",    value:"3h25",     sub:"0 baldeações — direto ao SIA",color:"#34d399" },
-                  { icon:"📅", label:"Horas devolvidas / mês",value:"+12,8h",   sub:"Tempo com a família",         color:"#a78bfa" },
-                  { icon:"💵", label:"Economia de passagem",  value:"R$ 90/mês",sub:"Uma baldeação eliminada",     color:"#fbbf24" },
+                  { icon:"🚌", label:"Tempo atual / dia",      value:"~4h",      sub:"Linha 188 → Rodoviária → 0.188 → SIA", color:"#fb7185" },
+                  { icon:"⚡", label:"Com ônibus diametral",   value:"3h25",     sub:"Direto Ceilândia→SIA, sem baldeação",  color:"#34d399" },
+                  { icon:"📅", label:"Horas devolvidas / mês", value:"+12,8h",   sub:"Tempo com a família",                  color:"#a78bfa" },
+                  { icon:"💵", label:"Economia de passagem",   value:"R$ 90/mês",sub:"Uma integração tarifária a menos",      color:"#fbbf24" },
                 ].map((s, i) => (
                   <motion.div key={s.label}
                     initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.07 }}

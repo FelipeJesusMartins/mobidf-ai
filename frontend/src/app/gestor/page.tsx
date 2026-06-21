@@ -356,11 +356,12 @@ export default function GestorPage() {
                   <div className="panel" style={{ padding: m ? "18px 16px" : 28, position:"relative", overflow:"hidden" }}>
                     <div style={{ position:"absolute", top:0, right:0, width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle,rgba(99,102,241,0.12),transparent 70%)", pointerEvents:"none" }} />
                     <div className="badge-volt" style={{ marginBottom:12, fontSize:10, letterSpacing:"0.1em", textTransform:"uppercase" }}>Cenário de validação</div>
-                    <div style={{ fontSize: m ? 15 : 22, fontWeight:900, color:"var(--t1)", marginBottom: m ? 14 : 20, letterSpacing:"-0.02em" }}>Maria · Ceilândia → SIA · −35 min/dia</div>
+                    <div style={{ fontSize: m ? 15 : 22, fontWeight:900, color:"var(--t1)", marginBottom: m ? 6 : 10, letterSpacing:"-0.02em" }}>Maria · Ceilândia → Feira dos Importados do SIA</div>
+                    <div style={{ fontSize:11, color:"var(--t3)", marginBottom: m ? 14 : 20 }}>🚌 Rota 100% ônibus — SIA não tem metrô · economia: −35 min/dia</div>
                     <div style={{ display:"grid", gridTemplateColumns: m ? "1fr" : "repeat(3,1fr)", gap: m ? 10 : 16 }}>
                       {[
-                        { label:"Situação atual", value:"4h/dia", sub:"2 baldeações", color:"var(--coral)" },
-                        { label:"Com rota diametral", value:"−35 min", sub:"sem baldeação", color:"var(--jade)" },
+                        { label:"Situação atual", value:"4h/dia", sub:"2 baldeações (ôn. 188 → Rodoviária → 0.188)", color:"var(--coral)" },
+                        { label:"Com ônibus diametral", value:"−35 min", sub:"direto Ceilândia→SIA, sem baldeação", color:"var(--jade)" },
                         { label:"Impacto mensal", value:"+12.8h", sub:"de vida devolvida", color:"var(--gold)" },
                       ].map(s => (
                         <div key={s.label} style={{ background:"var(--s3)", border:"1px solid var(--b1)", borderRadius:14, padding: m ? "12px 14px" : "18px 16px",

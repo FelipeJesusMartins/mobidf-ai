@@ -1966,13 +1966,42 @@ def health():
 def demo_maria():
     return {
         "persona": "Maria",
-        "origem": "Ceilândia Norte",
-        "destino": "SIA (Setor de Indústrias e Abastecimento)",
-        "cenario_atual": {"tempo_total_min": 120, "baldeacoes": 2, "descricao": "Ceilândia → Rodoviária do PP → SIA. Espera média 18min na Rodoviária."},
-        "cenario_mobidf": {
-            "rota_diametral": {"descricao": "Linha Diametral Ceilândia–SIA", "tempo_total_min": 85, "baldeacoes": 0, "tempo_salvo_min": 35},
-            "terminal_virtual": {"descricao": "Alimentadora sincronizada com troncal", "parada_baldeacao": "Terminal Taguatinga", "espera_max_min": 3, "tempo_total_min": 95, "tempo_salvo_min": 25},
-            "reserva_de_fluxo": {"assento_garantido": True, "categoria": "Expressa", "antecedencia_checkin": "30 minutos antes"},
+        "origem": "Ceilândia Norte (Terminal CEI-N)",
+        "destino": "Feira dos Importados do SIA",
+        "nota_transporte": "O SIA não é atendido pelo Metrô-DF. O acesso é exclusivamente por ônibus.",
+        "cenario_atual": {
+            "tempo_total_min": 120,
+            "baldeacoes": 2,
+            "descricao": (
+                "Ceilândia Norte → ônibus linha 188 → Rodoviária do PP (≈50 min) "
+                "→ espera ≈18 min → ônibus linha 0.188 → SIA (≈25 min). "
+                "Ida e volta: ~4h/dia só de ônibus."
+            ),
         },
-        "impacto_diario": {"tempo_recuperado_min": 35, "tempo_recuperado_horas_mes": 12.8, "ods_impactados": ["ODS 10", "ODS 11", "ODS 13"]},
+        "cenario_mobidf": {
+            "rota_diametral": {
+                "descricao": "Ônibus diametral Ceilândia→SIA sem baldeação (via EPTG/EPIA Sul)",
+                "linhas_sugeridas": ["CEI-SIA Diametral"],
+                "tempo_total_min": 85,
+                "baldeacoes": 0,
+                "tempo_salvo_min": 35,
+            },
+            "terminal_virtual": {
+                "descricao": "Alimentadora sincronizada: ônibus local entrega passageiros no ponto certo, sem perder o troncal",
+                "parada_baldeacao": "Terminal Ceilândia Norte",
+                "espera_max_min": 3,
+                "tempo_total_min": 95,
+                "tempo_salvo_min": 25,
+            },
+            "reserva_de_fluxo": {
+                "assento_garantido": True,
+                "categoria": "Expressa",
+                "antecedencia_checkin": "30 minutos antes",
+            },
+        },
+        "impacto_diario": {
+            "tempo_recuperado_min": 35,
+            "tempo_recuperado_horas_mes": 12.8,
+            "ods_impactados": ["ODS 10", "ODS 11", "ODS 13"],
+        },
     }
