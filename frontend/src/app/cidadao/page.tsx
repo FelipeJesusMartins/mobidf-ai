@@ -1423,13 +1423,14 @@ export default function CidadaoPage() {
                     textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:10 }}>
                     Número do cartão
                   </div>
-                  <div style={{ display:"flex", gap:8 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                     <input
-                      style={{ flex:1, padding:"12px 14px", borderRadius:12,
+                      style={{ width:"100%", boxSizing:"border-box",
+                        padding:"14px 16px", borderRadius:12,
                         border:"1px solid rgba(255,255,255,0.15)",
                         background:"rgba(255,255,255,0.1)", color:"#fff",
-                        fontSize:16, outline:"none", letterSpacing:"0.15em", fontWeight:600 }}
-                      placeholder="0000 0000 0000 0000"
+                        fontSize:18, outline:"none", letterSpacing:"0.18em", fontWeight:600 }}
+                      placeholder="0000 0000 0000 0"
                       value={cartaoNum}
                       maxLength={19}
                       inputMode="numeric"
@@ -1441,10 +1442,11 @@ export default function CidadaoPage() {
                       onKeyDown={e => e.key === "Enter" && consultarCartao()}
                     />
                     <button onClick={consultarCartao} disabled={cartaoLoading}
-                      style={{ padding:"0 20px", borderRadius:12, border:"none", cursor:"pointer",
-                        background:"linear-gradient(135deg,#7c3aed,#6366f1)", color:"#fff",
-                        fontWeight:700, fontSize:13, flexShrink:0, opacity: cartaoLoading ? 0.6 : 1 }}>
-                      {cartaoLoading ? "…" : "Consultar"}
+                      style={{ width:"100%", padding:"14px 0", borderRadius:12, border:"none",
+                        cursor:"pointer", background:"linear-gradient(135deg,#7c3aed,#6366f1)",
+                        color:"#fff", fontWeight:700, fontSize:15,
+                        opacity: cartaoLoading ? 0.6 : 1 }}>
+                      {cartaoLoading ? "Consultando…" : "Consultar saldo"}
                     </button>
                   </div>
                   {cartaoError && (
