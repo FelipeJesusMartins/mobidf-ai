@@ -168,7 +168,7 @@ export default function GestorPage() {
           {/* Mobile: logo + title */}
           {m && (
             <Link href="/" style={{ textDecoration:"none", flexShrink:0 }}>
-              <Logo variant="icon" height={26} />
+              <Logo variant="mark" height={26} />
             </Link>
           )}
           <div style={{ flex:1, minWidth:0 }}>
