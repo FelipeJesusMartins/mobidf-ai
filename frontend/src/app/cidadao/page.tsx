@@ -457,7 +457,7 @@ export default function CidadaoPage() {
     if (pickMode !== "destination") return;
     const label = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
     const pt = { lat, lon, label };
-    setToPt(pt); setToQuery(label); setToSugg([]);
+    setToPt(pt); setToQuery(label); setToSugg([]); setPois([]); setPoiQuery("");
     setPickMode(null);
     if (fromPt) planRoute(fromPt, pt);
   }, [pickMode, fromPt, planRoute]);
@@ -653,7 +653,7 @@ export default function CidadaoPage() {
             onPoiSelect={(poi, as) => {
               if (as !== "destination") return;
               const pt2 = { lat: poi.lat, lon: poi.lon, label: poi.name };
-              setToPt(pt2); setToQuery(poi.name); setToSugg([]);
+              setToPt(pt2); setToQuery(poi.name); setToSugg([]); setPois([]); setPoiQuery("");
               if (fromPt) planRoute(fromPt, pt2);
             }}
           />
@@ -972,7 +972,7 @@ export default function CidadaoPage() {
                           </div>
                           <button onClick={() => {
                               const pt2 = { lat:poi.lat, lon:poi.lon, label:poi.name };
-                              setToPt(pt2); setToQuery(poi.name); setToSugg([]);
+                              setToPt(pt2); setToQuery(poi.name); setToSugg([]); setPois([]); setPoiQuery("");
                               if (fromPt) planRoute(fromPt, pt2);
                             }}
                             style={{ padding:"6px 12px", borderRadius:99, border:"none", cursor:"pointer",
@@ -1082,7 +1082,7 @@ export default function CidadaoPage() {
                       {toSugg.slice(0,5).map(s => (
                         <button key={s.stop_id} onClick={() => {
                           const pt2 = { lat: s.stop_lat, lon: s.stop_lon, label: s.stop_name };
-                          setToPt(pt2); setToQuery(s.stop_name); setToSugg([]);
+                          setToPt(pt2); setToQuery(s.stop_name); setToSugg([]); setPois([]); setPoiQuery("");
                           if (fromPt) planRoute(fromPt, pt2);
                         }}
                         style={{ display:"block", width:"100%", padding:"11px 14px", textAlign:"left",
