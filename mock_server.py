@@ -1210,6 +1210,173 @@ def poi_status():
     return {"loaded": _pois_loaded, "total": len(_ALL_POIS)}
 
 
+# ── Haversine (módulo-nível) ─────────────────────────────────────────────────
+def _hav_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371.0
+    p1, p2 = _math.radians(lat1), _math.radians(lat2)
+    a = _math.sin((p2-p1)/2)**2 + _math.cos(p1)*_math.cos(p2)*_math.sin((_math.radians(lon2-lon1))/2)**2
+    return R * 2 * _math.asin(_math.sqrt(a))
+
+
+# ── PARCEIROS MobiDF — estabelecimentos verificados com desconto ───────────────
+_PARCEIROS = [
+    # ─ Rodoviária do Plano Piloto ─
+    {"id":"p001","nome":"Café do Cerrado","tipo":"cafe",
+     "lat":-15.7932,"lon":-47.8828,
+     "descricao":"Café artesanal com grãos do cerrado mineiro",
+     "desconto":"15% OFF no café da manhã ou qualquer bebida quente",
+     "horario":"06:00–21:00","emoji":"☕","cor":"#92400e",
+     "ods":["ODS 8","ODS 11"],"distancia_parada_m":80,
+     "codigo_desconto":"MOBI15CAFE","verificado":True},
+    {"id":"p002","nome":"Padaria Ipê","tipo":"padaria",
+     "lat":-15.7945,"lon":-47.8835,
+     "descricao":"Padaria artesanal — pão de queijo e tapioca frescos",
+     "desconto":"10% OFF + café grátis em compras acima de R$15",
+     "horario":"05:30–20:00","emoji":"🥖","cor":"#b45309",
+     "ods":["ODS 8"],"distancia_parada_m":150,
+     "codigo_desconto":"MOBIIPE10","verificado":True},
+    # ─ Terminal Ceilândia Norte ─
+    {"id":"p003","nome":"Lanches da Conceição","tipo":"lanchonete",
+     "lat":-15.8097,"lon":-48.1075,
+     "descricao":"Lanchonete familiar há 20 anos servindo o trabalhador de Ceilândia",
+     "desconto":"1 caldo de cana GRÁTIS + 10% OFF no combo",
+     "horario":"06:00–22:00","emoji":"🍔","cor":"#fb923c",
+     "ods":["ODS 8","ODS 10"],"distancia_parada_m":60,
+     "codigo_desconto":"MOBICEI10","verificado":True},
+    {"id":"p004","nome":"Sucos & Saúde Ceilândia","tipo":"cafe",
+     "lat":-15.8110,"lon":-48.1088,
+     "descricao":"Sucos naturais, açaí e vitaminas frescos na hora",
+     "desconto":"2 por 1 no suco pequeno das 06h às 09h",
+     "horario":"05:30–19:00","emoji":"🥤","cor":"#16a34a",
+     "ods":["ODS 3","ODS 8"],"distancia_parada_m":120,
+     "codigo_desconto":"MOBISUCO2x1","verificado":True},
+    # ─ Terminal Taguatinga Norte ─
+    {"id":"p005","nome":"Espaço Taguá","tipo":"restaurante",
+     "lat":-15.8389,"lon":-48.0476,
+     "descricao":"Comida caseira com buffet por kilo e prato feito",
+     "desconto":"R$5 OFF no buffet acima de R$25",
+     "horario":"06:00–15:00","emoji":"🍽️","cor":"#f97316",
+     "ods":["ODS 2","ODS 8"],"distancia_parada_m":95,
+     "codigo_desconto":"MOBITAGU5","verificado":True},
+    {"id":"p006","nome":"Banca do Mazinho","tipo":"cafe",
+     "lat":-15.8401,"lon":-48.0488,
+     "descricao":"Banca de jornais e cafeteria — ponto de encontro de Taguatinga",
+     "desconto":"Café expresso R$2,50 + biscoito grátis",
+     "horario":"05:00–21:00","emoji":"☕","cor":"#92400e",
+     "ods":["ODS 8","ODS 11"],"distancia_parada_m":40,
+     "codigo_desconto":"MOBIBANCA","verificado":True},
+    # ─ Terminal Samambaia Norte ─
+    {"id":"p007","nome":"Bistrô Samambaia","tipo":"cafe",
+     "lat":-15.8765,"lon":-48.0820,
+     "descricao":"Café e lanches naturais próximo ao terminal",
+     "desconto":"15% OFF em qualquer lanche + café da manhã por R$9,90",
+     "horario":"06:00–20:00","emoji":"🥪","cor":"#84cc16",
+     "ods":["ODS 8","ODS 10"],"distancia_parada_m":110,
+     "codigo_desconto":"MOBISAMA15","verificado":True},
+    # ─ Asa Norte ─
+    {"id":"p008","nome":"Cantina da 508","tipo":"restaurante",
+     "lat":-15.7550,"lon":-47.8820,
+     "descricao":"Comida caseira para estudantes e trabalhadores da Asa Norte",
+     "desconto":"Sobremesa GRÁTIS no almoço com QR Code MobiDF",
+     "horario":"11:00–15:00","emoji":"🍲","cor":"#f97316",
+     "ods":["ODS 2","ODS 11"],"distancia_parada_m":200,
+     "codigo_desconto":"MOBI508","verificado":True},
+    {"id":"p009","nome":"Café UnB — ICC Sul","tipo":"cafe",
+     "lat":-15.7630,"lon":-47.8695,
+     "descricao":"Café da universidade, aberto à comunidade",
+     "desconto":"10% OFF em bebidas e pães",
+     "horario":"07:00–22:00","emoji":"☕","cor":"#7c3aed",
+     "ods":["ODS 4","ODS 8"],"distancia_parada_m":150,
+     "codigo_desconto":"MOBIUNB10","verificado":True},
+    # ─ Guará ─
+    {"id":"p010","nome":"Doceria Guará","tipo":"doces",
+     "lat":-15.8302,"lon":-47.9838,
+     "descricao":"Doceria artesanal com brigadeiros gourmet e bolos caseiros",
+     "desconto":"Leve 6 brigadeiros, pague 5",
+     "horario":"08:00–19:00","emoji":"🍬","cor":"#e879f9",
+     "ods":["ODS 8"],"distancia_parada_m":180,
+     "codigo_desconto":"MOBIBRG6x5","verificado":True},
+    # ─ Santa Maria ─
+    {"id":"p011","nome":"Açaí do Trabalhador","tipo":"lanchonete",
+     "lat":-16.0205,"lon":-48.0660,
+     "descricao":"Açaí e sucos gelados — o ponto dos trabalhadores de Santa Maria",
+     "desconto":"Açaí 300ml por R$10,90 (exclusivo MobiDF)",
+     "horario":"06:30–22:00","emoji":"🫐","cor":"#7c3aed",
+     "ods":["ODS 8","ODS 10"],"distancia_parada_m":90,
+     "codigo_desconto":"MOBIACAI","verificado":True},
+    # ─ Sobradinho ─
+    {"id":"p012","nome":"Café Regional Sobradinho","tipo":"cafe",
+     "lat":-15.6530,"lon":-47.7980,
+     "descricao":"Café especial da região com pão de queijo artesanal",
+     "desconto":"Combo café + pão de queijo R$8 (economize R$4)",
+     "horario":"05:30–19:30","emoji":"☕","cor":"#b45309",
+     "ods":["ODS 8","ODS 11"],"distancia_parada_m":70,
+     "codigo_desconto":"MOBISOB8","verificado":True},
+    # ─ Culturais / Eventos ─
+    {"id":"p013","nome":"Feira dos Importados","tipo":"feira",
+     "lat":-15.7820,"lon":-47.9100,
+     "descricao":"Maior feira de importados do DF — mais de 2.000 lojas",
+     "desconto":"R$20 OFF em compras acima de R$150",
+     "horario":"Sex 12:00–22:00 / Sáb-Dom 08:00–22:00",
+     "emoji":"🛍️","cor":"#a855f7",
+     "ods":["ODS 8","ODS 10"],"distancia_parada_m":250,
+     "codigo_desconto":"MOBIFEIRA20","verificado":True},
+    {"id":"p014","nome":"Espaço Cultural Ceilândia","tipo":"cultura",
+     "lat":-15.8150,"lon":-48.1010,
+     "descricao":"Shows, exposições e eventos culturais da periferia do DF",
+     "desconto":"ENTRADA GRATUITA em shows mensais",
+     "horario":"Conforme programação",
+     "emoji":"🎭","cor":"#ec4899",
+     "ods":["ODS 11","ODS 10","ODS 4"],"distancia_parada_m":300,
+     "codigo_desconto":"MOBICULTURA","verificado":True},
+    {"id":"p015","nome":"Mercado do Produtor — CEASA","tipo":"feira",
+     "lat":-15.8080,"lon":-47.9795,
+     "descricao":"Feira do produtor com frutas, verduras e produtos regionais",
+     "desconto":"10% OFF em compras acima de R$30 — apoio à agricultura familiar",
+     "horario":"Sáb 05:00–12:00","emoji":"🥦","cor":"#16a34a",
+     "ods":["ODS 2","ODS 8","ODS 12"],"distancia_parada_m":200,
+     "codigo_desconto":"MOBICEASA10","verificado":True},
+]
+
+
+@app.get("/api/v1/cidadao/parceiros/nearby")
+def parceiros_nearby(lat: float, lon: float, radius_m: int = 800):
+    result = []
+    for p in _PARCEIROS:
+        d = _hav_km(lat, lon, p["lat"], p["lon"]) * 1000
+        if d <= radius_m:
+            result.append({**p, "dist_m": int(d)})
+    result.sort(key=lambda x: x["dist_m"])
+    return result
+
+
+@app.get("/api/v1/cidadao/parceiros")
+def parceiros_all():
+    return _PARCEIROS
+
+
+@app.post("/api/v1/cidadao/parceiros/{parceiro_id}/qrcode")
+def gerar_qrcode(parceiro_id: str, user_token: str = ""):
+    parceiro = next((p for p in _PARCEIROS if p["id"] == parceiro_id), None)
+    if not parceiro:
+        from fastapi import HTTPException
+        raise HTTPException(404, "Parceiro não encontrado")
+    now = int(time.time())
+    expires = now + 900  # 15 min
+    payload = f"MOBIDF:{parceiro_id}:{user_token or 'guest'}:{now}"
+    code = hashlib.sha256(payload.encode()).hexdigest()[:12].upper()
+    qr_data = f"MOBIDF|{parceiro_id}|{code}|{expires}|{parceiro['codigo_desconto']}"
+    return {
+        "qr_data": qr_data,
+        "code": code,
+        "desconto": parceiro["desconto"],
+        "parceiro_nome": parceiro["nome"],
+        "codigo_desconto": parceiro["codigo_desconto"],
+        "valido_ate": datetime.fromtimestamp(expires).strftime("%H:%M"),
+        "expires_ts": expires,
+    }
+
+
 @app.get("/")
 def health():
     return {"status": "ok", "service": "MobiDF AI", "mode": "mock"}

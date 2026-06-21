@@ -72,8 +72,45 @@ export const api = {
       apiFetch<RoutePlan>(`/cidadao/routes/plan?from_lat=${fromLat}&from_lon=${fromLon}&to_lat=${toLat}&to_lon=${toLon}`),
     poiSearch: (q: string) =>
       apiFetch<POI[]>(`/cidadao/poi/search?q=${encodeURIComponent(q)}`),
+    parceirosNearby: (lat: number, lon: number, radiusM = 800) =>
+      apiFetch<Parceiro[]>(`/cidadao/parceiros/nearby?lat=${lat}&lon=${lon}&radius_m=${radiusM}`),
+    parceiros: () => apiFetch<Parceiro[]>("/cidadao/parceiros"),
+    gerarQRCode: (parceiroId: string, userToken: string) =>
+      apiFetch<QRCodeResult>(`/cidadao/parceiros/${parceiroId}/qrcode`, {
+        method: "POST",
+        body: JSON.stringify({ user_token: userToken }),
+      }),
   },
 };
+
+// ---- Parceiros / QR Code Types ----
+export interface Parceiro {
+  id: string;
+  nome: string;
+  tipo: string;
+  lat: number;
+  lon: number;
+  descricao: string;
+  desconto: string;
+  horario: string;
+  emoji: string;
+  cor: string;
+  ods: string[];
+  distancia_parada_m: number;
+  codigo_desconto: string;
+  verificado: boolean;
+  dist_m?: number;
+}
+
+export interface QRCodeResult {
+  qr_data: string;
+  code: string;
+  desconto: string;
+  parceiro_nome: string;
+  codigo_desconto: string;
+  valido_ate: string;
+  expires_ts: number;
+}
 
 // ---- POI Types ----
 export interface POI {

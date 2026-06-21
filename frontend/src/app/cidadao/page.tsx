@@ -2,8 +2,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { api, type Stop, type NextTrip, type CartaoSaldo, type MetroLineSegment, type Route, type RoutePlan, type POI } from "@/lib/api";
+import { api, type Stop, type NextTrip, type CartaoSaldo, type MetroLineSegment, type Route, type RoutePlan, type POI, type Parceiro } from "@/lib/api";
 import Logo from "@/components/ui/Logo";
+import AuthModal, { type MobiUser } from "@/components/cidadao/AuthModal";
+import QRCodeModal from "@/components/cidadao/QRCodeModal";
 
 const RouteMap = dynamic(() => import("@/components/cidadao/RouteMap"), {
   ssr: false,
@@ -345,6 +347,49 @@ export default function CidadaoPage() {
   const [poiQuery,     setPoiQuery]     = useState("");
   const [pois,         setPois]         = useState<POI[]>([]);
   const [poiLoading,   setPoiLoading]   = useState(false);
+
+  /* ── Auth + Parceiros ── */
+  const [user,          setUser]          = useState<MobiUser | null>(null);
+  const [showAuth,      setShowAuth]      = useState(false);
+  const [qrParceiro,    setQrParceiro]    = useState<Parceiro | null>(null);
+  const [parceiros,     setParceiros]     = useState<Parceiro[]>([]);
+  const [parceirosPending, setParceirosPending] = useState<Parceiro | null>(null);
+
+  // Recupera usuário logado do localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mobidf_user");
+      if (saved) setUser(JSON.parse(saved));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Busca parceiros próximos quando há parada selecionada ou ponto de origem
+  useEffect(() => {
+    const lat = selectedStop?.stop_lat ?? fromPt?.lat;
+    const lon = selectedStop?.stop_lon ?? fromPt?.lon;
+    if (!lat || !lon) { setParceiros([]); return; }
+    api.cidadao.parceirosNearby(lat, lon, 1200)
+      .then(setParceiros)
+      .catch(() => setParceiros([]));
+  }, [selectedStop, fromPt]);
+
+  function handleVerDesconto(p: Parceiro) {
+    if (!user) {
+      setParceirosPending(p);
+      setShowAuth(true);
+    } else {
+      setQrParceiro(p);
+    }
+  }
+
+  function handleLogin(u: MobiUser) {
+    setUser(u);
+    setShowAuth(false);
+    if (parceirosPending) {
+      setQrParceiro(parceirosPending);
+      setParceirosPending(null);
+    }
+  }
 
   const planRoute = useCallback(async (from: Pt, to: Pt) => {
     setRouteLoading(true); setRoutePlan(null); setSelectedRoute(null);
@@ -748,6 +793,75 @@ export default function CidadaoPage() {
                     )}
                   </>
                 )}
+
+                {/* ── Enquanto você espera ── */}
+                {parceiros.length > 0 && selectedStop && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                      <div style={{ fontSize:10, fontWeight:800, color:"#818cf8",
+                        textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                        ☕ Enquanto você espera
+                      </div>
+                      <div style={{ flex:1, height:1, background:"rgba(129,140,248,0.2)" }} />
+                      <div style={{ fontSize:9, color:"#475569" }}>parceiros verificados</div>
+                    </div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                      {parceiros.slice(0,3).map(p => (
+                        <div key={p.id} style={{
+                          background:"rgba(255,255,255,0.05)", borderRadius:14,
+                          border:"1px solid rgba(129,140,248,0.18)",
+                          padding:"12px 14px", display:"flex", alignItems:"flex-start", gap:12,
+                        }}>
+                          <div style={{
+                            width:40, height:40, borderRadius:11, flexShrink:0,
+                            background: p.cor + "22", border:`1.5px solid ${p.cor}55`,
+                            display:"flex", alignItems:"center", justifyContent:"center", fontSize:20,
+                          }}>
+                            {p.emoji}
+                          </div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                              <span style={{ fontSize:13, fontWeight:800, color:"#f1f5f9" }}>
+                                {p.nome}
+                              </span>
+                              {p.verificado && (
+                                <span style={{ fontSize:9, color:"#4ade80", fontWeight:700 }}>✓</span>
+                              )}
+                            </div>
+                            <div style={{ fontSize:11, color:"#818cf8", fontWeight:700, marginBottom:3 }}>
+                              🎁 {p.desconto}
+                            </div>
+                            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                              <span style={{ fontSize:10, color:"#64748b" }}>
+                                📍 {p.dist_m}m · {p.horario}
+                              </span>
+                            </div>
+                            <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"wrap" }}>
+                              {p.ods.map(o => (
+                                <span key={o} style={{ fontSize:9, fontWeight:700, color:"#818cf8",
+                                  background:"rgba(129,140,248,0.12)", borderRadius:99,
+                                  padding:"2px 7px", border:"1px solid rgba(129,140,248,0.2)" }}>
+                                  {o}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleVerDesconto(p)}
+                            style={{
+                              flexShrink:0, padding:"7px 12px", borderRadius:10,
+                              border:"none", cursor:"pointer", fontSize:11, fontWeight:800,
+                              background:"linear-gradient(135deg,#7c3aed,#6366f1)",
+                              color:"#fff", whiteSpace:"nowrap",
+                            }}
+                          >
+                            {user ? "Ver QR Code" : "Ver desconto"}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1019,6 +1133,51 @@ export default function CidadaoPage() {
                     })}
                   </>
                 )}
+
+                {/* ── Parceiros próximos ao destino ── */}
+                {parceiros.length > 0 && routePlan && (
+                  <div style={{ marginTop:4 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                      <div style={{ fontSize:10, fontWeight:800, color:"#818cf8",
+                        textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                        🎁 Aproveite a viagem
+                      </div>
+                      <div style={{ flex:1, height:1, background:"rgba(129,140,248,0.2)" }} />
+                    </div>
+                    <div style={{ display:"flex", gap:10, overflowX:"auto", paddingBottom:4 }}>
+                      {parceiros.slice(0,4).map(p => (
+                        <div key={p.id} style={{
+                          flexShrink:0, width:220, background:"rgba(255,255,255,0.05)",
+                          borderRadius:14, border:"1px solid rgba(129,140,248,0.18)",
+                          padding:"12px 14px",
+                        }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                            <span style={{ fontSize:22 }}>{p.emoji}</span>
+                            <div>
+                              <div style={{ fontSize:12, fontWeight:800, color:"#f1f5f9", lineHeight:1.2 }}>
+                                {p.nome}
+                              </div>
+                              <div style={{ fontSize:9, color:"#64748b" }}>{p.dist_m}m · {p.horario}</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize:11, color:"#818cf8", fontWeight:700, marginBottom:10 }}>
+                            {p.desconto}
+                          </div>
+                          <button
+                            onClick={() => handleVerDesconto(p)}
+                            style={{
+                              width:"100%", padding:"7px 0", borderRadius:9, border:"none",
+                              background:"linear-gradient(135deg,#7c3aed,#6366f1)",
+                              color:"#fff", fontSize:11, fontWeight:800, cursor:"pointer",
+                            }}
+                          >
+                            {user ? "🎟️ Gerar QR Code" : "🔐 Ver desconto"}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1223,6 +1382,47 @@ export default function CidadaoPage() {
         .leaflet-popup-content-wrapper { border-radius: 12px !important; }
         .leaflet-popup-tip { display: none; }
       `}</style>
+
+      {/* ── Auth Modal ── */}
+      {showAuth && (
+        <AuthModal
+          onClose={() => { setShowAuth(false); setParceirosPending(null); }}
+          onLogin={handleLogin}
+        />
+      )}
+
+      {/* ── QR Code Modal ── */}
+      {qrParceiro && user && (
+        <QRCodeModal
+          parceiro={qrParceiro}
+          user={user}
+          onClose={() => setQrParceiro(null)}
+        />
+      )}
+
+      {/* ── Chip de usuário logado (bottom-left) ── */}
+      {user && (
+        <div style={{
+          position:"fixed", bottom:76, left:12, zIndex:200,
+          background:"rgba(15,23,42,0.92)", backdropFilter:"blur(12px)",
+          border:"1px solid rgba(129,140,248,0.25)", borderRadius:99,
+          padding:"5px 12px 5px 8px", display:"flex", alignItems:"center", gap:8,
+          cursor:"pointer",
+        }}
+          onClick={() => { localStorage.removeItem("mobidf_user"); setUser(null); }}
+          title="Clique para sair"
+        >
+          <div style={{ width:22, height:22, borderRadius:"50%",
+            background:"linear-gradient(135deg,#7c3aed,#6366f1)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:11, fontWeight:900, color:"#fff" }}>
+            {user.nome[0].toUpperCase()}
+          </div>
+          <span style={{ fontSize:11, fontWeight:700, color:"#a5b4fc" }}>
+            {user.nome.split(" ")[0]}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
