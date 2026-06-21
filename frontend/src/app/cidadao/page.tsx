@@ -6,6 +6,8 @@ import { api, type Stop, type NextTrip, type CartaoSaldo, type MetroLineSegment,
 import Logo from "@/components/ui/Logo";
 import AuthModal, { type MobiUser } from "@/components/cidadao/AuthModal";
 import QRCodeModal from "@/components/cidadao/QRCodeModal";
+import { useAnalytics, } from "@/lib/useAnalytics";
+import { trackEvent, fetchLiveStats, type LiveStats } from "@/lib/analytics";
 
 const RouteMap = dynamic(() => import("@/components/cidadao/RouteMap"), {
   ssr: false,
@@ -348,6 +350,15 @@ export default function CidadaoPage() {
   const [pois,         setPois]         = useState<POI[]>([]);
   const [poiLoading,   setPoiLoading]   = useState(false);
 
+  /* ── Analytics ── */
+  useAnalytics("cidadao");
+  const [liveOnline, setLiveOnline] = useState<number | null>(null);
+  useEffect(() => {
+    fetchLiveStats().then(s => s && setLiveOnline(s.online_now));
+    const t = setInterval(() => fetchLiveStats().then(s => s && setLiveOnline(s.online_now)), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
   /* ── Auth + Parceiros ── */
   const [user,          setUser]          = useState<MobiUser | null>(null);
   const [showAuth,      setShowAuth]      = useState(false);
@@ -385,6 +396,7 @@ export default function CidadaoPage() {
   function handleLogin(u: MobiUser) {
     setUser(u);
     setShowAuth(false);
+    trackEvent("login", u.email);
     if (parceirosPending) {
       setQrParceiro(parceirosPending);
       setParceirosPending(null);
@@ -393,6 +405,7 @@ export default function CidadaoPage() {
 
   const planRoute = useCallback(async (from: Pt, to: Pt) => {
     setRouteLoading(true); setRoutePlan(null); setSelectedRoute(null);
+    trackEvent("route_planned", `${from.label}→${to.label}`);
     try {
       const plan = await api.cidadao.planRoute(from.lat, from.lon, to.lat, to.lon);
       setRoutePlan(plan);
@@ -434,6 +447,7 @@ export default function CidadaoPage() {
     if (!poiQuery.trim() || poiQuery.length < 3) { setPois([]); return; }
     const t = setTimeout(() => {
       setPoiLoading(true);
+      trackEvent("poi_search", poiQuery);
       api.cidadao.poiSearch(poiQuery)
         .then(setPois)
         .catch(() => setPois([]))
@@ -543,12 +557,25 @@ export default function CidadaoPage() {
 
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18 }}>
           <Logo variant="full" height={30} />
-          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:5,
-            padding:"4px 10px", borderRadius:99,
-            background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.25)" }}>
-            <span style={{ width:6, height:6, borderRadius:"50%", background:"#10b981",
-              boxShadow:"0 0 6px #10b981", animation:"pulse 2s infinite" }} />
-            <span style={{ fontSize:10, color:"#34d399", fontWeight:600 }}>Ao vivo</span>
+          <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:6 }}>
+            {liveOnline !== null && (
+              <div style={{ display:"flex", alignItems:"center", gap:4,
+                padding:"4px 9px", borderRadius:99,
+                background:"rgba(124,58,237,0.15)", border:"1px solid rgba(124,58,237,0.25)" }}>
+                <span style={{ width:5, height:5, borderRadius:"50%", background:"#a78bfa",
+                  boxShadow:"0 0 5px #a78bfa", animation:"pulse 2s infinite" }} />
+                <span style={{ fontSize:10, color:"#c4b5fd", fontWeight:700 }}>
+                  {liveOnline} online
+                </span>
+              </div>
+            )}
+            <div style={{ display:"flex", alignItems:"center", gap:5,
+              padding:"4px 10px", borderRadius:99,
+              background:"rgba(16,185,129,0.15)", border:"1px solid rgba(16,185,129,0.25)" }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#10b981",
+                boxShadow:"0 0 6px #10b981", animation:"pulse 2s infinite" }} />
+              <span style={{ fontSize:10, color:"#34d399", fontWeight:600 }}>Ao vivo</span>
+            </div>
           </div>
         </div>
 

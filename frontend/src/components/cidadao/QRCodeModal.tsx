@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { Parceiro, QRCodeResult } from "@/lib/api";
 import { api } from "@/lib/api";
+import { trackEvent } from "@/lib/analytics";
 import type { MobiUser } from "./AuthModal";
 
 interface Props {
@@ -17,9 +18,13 @@ export default function QRCodeModal({ parceiro, user, onClose }: Props) {
 
   useEffect(() => {
     api.cidadao.gerarQRCode(parceiro.id, user.token)
-      .then(res => { setQr(res); setLoading(false); })
+      .then(res => {
+        setQr(res);
+        setLoading(false);
+        trackEvent("qr_generated", `${parceiro.id}:${user.email}`);
+      })
       .catch(() => setLoading(false));
-  }, [parceiro.id, user.token]);
+  }, [parceiro.id, user.token, parceiro.id, user.email]);
 
   // Conta regressiva
   useEffect(() => {

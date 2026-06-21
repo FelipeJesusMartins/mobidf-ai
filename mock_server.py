@@ -1406,9 +1406,79 @@ def gerar_qrcode(parceiro_id: str, user_token: str = ""):
     }
 
 
+# ── ANALYTICS — presença e eventos em tempo real ──────────────────────────────
+# session_id → last_heartbeat timestamp
+_SESSIONS: dict[str, dict] = {}
+# ring buffer de eventos (máx. 1000)
+_EVENTS: list[dict] = []
+_ACTIVE_TTL = 120  # segundos sem heartbeat para considerar offline
+
+
+def _prune_sessions() -> None:
+    now = time.time()
+    dead = [sid for sid, s in _SESSIONS.items() if now - s["ts"] > _ACTIVE_TTL * 5]
+    for sid in dead:
+        del _SESSIONS[sid]
+
+
+@app.post("/api/v1/analytics/heartbeat")
+def heartbeat(session_id: str, page: str = "", user_name: str = ""):
+    _SESSIONS[session_id] = {
+        "ts": time.time(),
+        "page": page,
+        "user": user_name or "anônimo",
+    }
+    _prune_sessions()
+    return {"online": sum(1 for s in _SESSIONS.values() if time.time() - s["ts"] < _ACTIVE_TTL)}
+
+
+@app.post("/api/v1/analytics/event")
+def track_event(session_id: str, event: str, meta: str = ""):
+    _EVENTS.append({
+        "session_id": session_id,
+        "event": event,
+        "meta": meta,
+        "ts": time.time(),
+    })
+    if len(_EVENTS) > 1000:
+        _EVENTS.pop(0)
+    return {"ok": True}
+
+
+@app.get("/api/v1/analytics/live")
+def live_stats():
+    now = time.time()
+    active_sessions = {sid: s for sid, s in _SESSIONS.items() if now - s["ts"] < _ACTIVE_TTL}
+    events_1h = [e for e in _EVENTS if now - e["ts"] < 3600]
+    events_24h = [e for e in _EVENTS if now - e["ts"] < 86400]
+
+    def count(evs, name): return len([e for e in evs if e["event"] == name])
+
+    # Distribui sessões por página
+    pages: dict[str, int] = {}
+    for s in active_sessions.values():
+        p = s.get("page", "")
+        pages[p] = pages.get(p, 0) + 1
+
+    return {
+        "online_now":         len(active_sessions),
+        "sessions_total":     len(_SESSIONS),
+        "events_1h":          len(events_1h),
+        "events_24h":         len(events_24h),
+        "routes_1h":          count(events_1h, "route_planned"),
+        "poi_searches_1h":    count(events_1h, "poi_search"),
+        "qr_generated_1h":    count(events_1h, "qr_generated"),
+        "stops_searched_1h":  count(events_1h, "stop_search"),
+        "logins_1h":          count(events_1h, "login"),
+        "pages_active":       pages,
+        "uptime_s":           int(now),
+    }
+
+
 @app.get("/")
 def health():
-    return {"status": "ok", "service": "MobiDF AI", "mode": "mock"}
+    return {"status": "ok", "service": "MobiDF AI", "mode": "mock",
+            "online": sum(1 for s in _SESSIONS.values() if time.time() - s["ts"] < _ACTIVE_TTL)}
 
 @app.get("/api/v1/cidadao/demo/maria")
 def demo_maria():
