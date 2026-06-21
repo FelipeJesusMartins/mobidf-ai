@@ -582,7 +582,7 @@ export default function CidadaoPage() {
         style={{ padding:"20px 18px 0", position:"relative", zIndex:10 }}>
 
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:18 }}>
-          <Logo variant="full" height={30} />
+          <a href="/" style={{ display:"flex", lineHeight:0 }}><Logo variant="full" height={30} /></a>
           <div style={{ marginLeft:"auto", display:"flex", alignItems:"center", gap:6 }}>
             {liveOnline !== null && (
               <div style={{ display:"flex", alignItems:"center", gap:4,
